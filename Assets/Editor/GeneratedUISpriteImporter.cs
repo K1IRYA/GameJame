@@ -25,13 +25,16 @@ public sealed class GeneratedUISpriteImporter : AssetPostprocessor
         importer.spritePixelsPerUnit = 100;
         importer.maxTextureSize = 2048;
         string name = System.IO.Path.GetFileNameWithoutExtension(assetPath);
-        if (name == "menu_background" || name.StartsWith("button_pause", System.StringComparison.OrdinalIgnoreCase) || name.StartsWith("icon_", System.StringComparison.OrdinalIgnoreCase))
+        if (name == "menu_background" ||
+            name.StartsWith("button_pause", System.StringComparison.OrdinalIgnoreCase) ||
+            name.StartsWith("Pause_", System.StringComparison.OrdinalIgnoreCase) ||
+            name.StartsWith("icon_", System.StringComparison.OrdinalIgnoreCase))
         {
             importer.spriteBorder = Vector4.zero;
             return;
         }
         float border = name.StartsWith("panel_") ? 28 :
-            (name.StartsWith("button_")) ? 14 :
+            (name.StartsWith("button_") || name.Contains("TargetGraphic") || name.Contains("HighlightedSprite") || name.Contains("PressedSprite") || name.Contains("DisabledSprite") || name.Contains("SelectedSprite")) ? 14 :
             (name.StartsWith("build_slot_")) ? 16 : 0;
         importer.spriteBorder = new Vector4(border, border, border, border);
     }
