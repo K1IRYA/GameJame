@@ -1,0 +1,11 @@
+using UnityEngine;
+
+[System.Serializable]
+public class BuildSetting
+{
+    public string buildingName;
+    public Sprite icon;
+    public GameObject buildPref; // Префаб здания для постройки
+    public int health = 100;
+    public int maxHealth = 100;
+}
