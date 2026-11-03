@@ -11,6 +11,11 @@ public class UnitsController : MonoBehaviour
     [Tooltip("Слой поверхности земли для кликов мышью")]
     [SerializeField] private LayerMask groundLayer = ~0;
 
+    [Header("Visual Feedback")]
+    [Tooltip("Объект-круг под ногами")]
+    [SerializeField] private GameObject selectionCircle;
+    private bool isSelected = false;
+
     private NavMeshAgent agent;
     private Animator animator;
     private Camera mainCamera;
@@ -24,8 +29,8 @@ public class UnitsController : MonoBehaviour
         animator = GetComponentInChildren<Animator>();
         mainCamera = Camera.main;
 
-
         ApplyUnitStats();
+        SetSelected(false);
     }
 
     private void ApplyUnitStats()
@@ -47,35 +52,23 @@ public class UnitsController : MonoBehaviour
 
     private void Update()
     {
-        HandleInput();
         UpdateAnimations();
     }
 
-    private void HandleInput()
+    public void MoveTo(Vector3 destination)
     {
-        // Нажатие правой кнопки мыши (ПКМ) для перемещения
-        if (Input.GetMouseButtonDown(1))
+        if (agent.isOnNavMesh)
         {
-            if (mainCamera == null)
-            {
-                mainCamera = Camera.main;
-                if (mainCamera == null) return;
-            }
+            agent.SetDestination(destination);
+        }
+    }
+    public void SetSelected(bool selected)
+    {
+        isSelected = selected;
 
-            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
-
-            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer))
-            {
-                // Проверяем валидность точки на навигационной сетке NavMesh
-                if (NavMesh.SamplePosition(hit.point, out NavMeshHit navHit, 2.0f, NavMesh.AllAreas))
-                {
-                    agent.SetDestination(navHit.position);
-                }
-                else
-                {
-                    agent.SetDestination(hit.point);
-                }
-            }
+        if (selectionCircle != null)
+        {
+            selectionCircle.SetActive(selected);
         }
     }
 
