@@ -17,7 +17,14 @@ public class mainmenu : MonoBehaviour
     public void Play()
     {
         Debug.Log("Play button clicked");
-        SceneManager.LoadScene("SampleScene");
+        if (Application.CanStreamedLevelBeLoaded("MainScene"))
+        {
+            SceneManager.LoadScene("MainScene");
+        }
+        else
+        {
+            SceneManager.LoadScene("SampleScene");
+        }
     }
     public void Back()
     {

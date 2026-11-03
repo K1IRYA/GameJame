@@ -77,7 +77,7 @@ public class CameraController : MonoBehaviour
         UpdateCameraOffset();
     }
 
-    private void HandleMovement() // Перемещаяемся на WASD, и мышкой по краям экрына
+    private void HandleMovement() // Перемещаемся на WASD, и мышкой по краям экрана
     {
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
@@ -87,7 +87,7 @@ public class CameraController : MonoBehaviour
             Vector3 mousePos = Input.mousePosition;
 
             bool isWindow = mousePos.x >= 0 && mousePos.x <= Screen.width && mousePos.y >= 0 && mousePos.y <= Screen.height;
-            
+        
             if (isWindow)
             {
                 if (mousePos.x <= settings.edgeBoundaryThickness)
@@ -114,9 +114,20 @@ public class CameraController : MonoBehaviour
         }
     }
 
-    private void HandleRotation() // При зажатом Mouse3 крутим камеру по оси
+    private void HandleRotation()
     {
-        if (Input.GetMouseButton(2) || Input.GetMouseButton(1))
+        // Поворот по горизонтали на клавиши Q и E
+        float keyRotation = 0f;
+        if (Input.GetKey(KeyCode.Q)) keyRotation -= 1f;
+        if (Input.GetKey(KeyCode.E)) keyRotation += 1f;
+
+        if (keyRotation != 0f)
+        {
+            currentYaw += keyRotation * settings.rotationSpeed * Time.deltaTime;
+        }
+
+        // Вращение по горизонтали и вертикали только на нажатие колесика мыши (MMB)
+        if (Input.GetMouseButton(2))
         {
             float mouseX = Input.GetAxis("Mouse X");
             float mouseY = Input.GetAxis("Mouse Y");
@@ -127,7 +138,7 @@ public class CameraController : MonoBehaviour
         }
     }
 
-    private void HandleZoom() // Крутим колесо что позволяет приблежаться и отдаляться
+    private void HandleZoom() // Крутим колесо, приближаемся и отдаляемся
     {
         float scroll = Input.GetAxis("Mouse ScrollWheel");
         if (Mathf.Abs(scroll) > 0.01f)
@@ -137,7 +148,7 @@ public class CameraController : MonoBehaviour
         }
     }
 
-    private void UpdateCameraOffset() // Расчет позиции камеры, а также заставляем её вращяться вокруг локальной оси
+    private void UpdateCameraOffset() // Расчет позиции камеры и вращение вокруг локальной оси
     {
         Quaternion pitchRotation = Quaternion.Euler(currentPitch, 0f, 0f);
         Vector3 offset = pitchRotation * new Vector3(0f, 0f, -currentZoomDistance);
