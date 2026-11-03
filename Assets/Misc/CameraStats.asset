@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c1a1cb9a7552974ba9882d9fa5d6f36, type: 3}
   m_Name: CameraStats
   m_EditorClassIdentifier: 
-  moveSpeed: 30
+  moveSpeed: 70
   movementSmoothing: 10
   enableEdgeScrolling: 1
   edgeBoundaryThickness: 20
   lockCursorInWindow: 0
-  rotationSpeed: 100
+  rotationSpeed: 200
   minPitch: 15
   maxPitch: 80
   zoomSpeed: 20
