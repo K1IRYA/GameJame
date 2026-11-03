@@ -14,6 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 30
   movementSmoothing: 10
+  enableEdgeScrolling: 1
+  edgeBoundaryThickness: 20
+  lockCursorInWindow: 0
   rotationSpeed: 100
   minPitch: 15
   maxPitch: 80
