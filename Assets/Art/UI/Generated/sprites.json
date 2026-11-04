@@ -1,0 +1,67 @@
+{
+  "panel_menu": {
+    "width": 256,
+    "height": 256,
+    "border": 28
+  },
+  "panel_pause": {
+    "width": 256,
+    "height": 256,
+    "border": 28
+  },
+  "panel_build": {
+    "width": 256,
+    "height": 128,
+    "border": 28
+  },
+  "button_normal": {
+    "width": 256,
+    "height": 64,
+    "border": 12
+  },
+  "build_slot_normal": {
+    "width": 96,
+    "height": 96,
+    "border": 12
+  },
+  "button_hover": {
+    "width": 256,
+    "height": 64,
+    "border": 12
+  },
+  "build_slot_hover": {
+    "width": 96,
+    "height": 96,
+    "border": 12
+  },
+  "button_pressed": {
+    "width": 256,
+    "height": 64,
+    "border": 12
+  },
+  "build_slot_pressed": {
+    "width": 96,
+    "height": 96,
+    "border": 12
+  },
+  "button_disabled": {
+    "width": 256,
+    "height": 64,
+    "border": 12
+  },
+  "build_slot_disabled": {
+    "width": 96,
+    "height": 96,
+    "border": 12
+  },
+  "building_placeholder": {
+    "width": 64,
+    "height": 64,
+    "border": 0
+  },
+  "overlay_pause": {
+    "width": 8,
+    "height": 8,
+    "border": 0
+  }
+}

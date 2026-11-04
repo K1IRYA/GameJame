@@ -1,0 +1,80 @@
+{
+  "panel_menu": {
+    "width": 256,
+    "height": 256,
+    "border": 28,
+    "category": "Panels"
+  },
+  "panel_pause": {
+    "width": 256,
+    "height": 256,
+    "border": 28,
+    "category": "Panels"
+  },
+  "panel_build": {
+    "width": 320,
+    "height": 128,
+    "border": 28,
+    "category": "Panels"
+  },
+  "button_normal": {
+    "width": 256,
+    "height": 64,
+    "border": 14,
+    "category": "Buttons"
+  },
+  "button_hover": {
+    "width": 256,
+    "height": 64,
+    "border": 14,
+    "category": "Buttons"
+  },
+  "button_pressed": {
+    "width": 256,
+    "height": 64,
+    "border": 14,
+    "category": "Buttons"
+  },
+  "button_disabled": {
+    "width": 256,
+    "height": 64,
+    "border": 14,
+    "category": "Buttons"
+  },
+  "build_slot_normal": {
+    "width": 96,
+    "height": 96,
+    "border": 16,
+    "category": "Slots"
+  },
+  "build_slot_hover": {
+    "width": 96,
+    "height": 96,
+    "border": 16,
+    "category": "Slots"
+  },
+  "build_slot_pressed": {
+    "width": 96,
+    "height": 96,
+    "border": 16,
+    "category": "Slots"
+  },
+  "build_slot_disabled": {
+    "width": 96,
+    "height": 96,
+    "border": 16,
+    "category": "Slots"
+  },
+  "building_placeholder": {
+    "width": 64,
+    "height": 64,
+    "border": 0,
+    "category": "Placeholders"
+  },
+  "overlay_pause": {
+    "width": 32,
+    "height": 32,
+    "border": 0,
+    "category": "Placeholders"
+  }
+}
