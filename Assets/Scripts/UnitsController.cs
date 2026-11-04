@@ -24,6 +24,11 @@ public class UnitsController : MonoBehaviour
         animator = GetComponentInChildren<Animator>();
         mainCamera = Camera.main;
 
+        if (groundLayer == ~0 || groundLayer == 0)
+        {
+            LayerMask mask = LayerMask.GetMask("Ground");
+            if (mask != 0) groundLayer = mask;
+        }
 
         ApplyUnitStats();
     }
