@@ -27,6 +27,7 @@ public class UnitsController : MonoBehaviour
     private Camera mainCamera;
     private float currentHealth;
     private GameObject currentMarker;
+    private bool isMovingToTarget = false;
 
     private static readonly int SpeedHash = Animator.StringToHash("Speed");
 
@@ -68,6 +69,7 @@ public class UnitsController : MonoBehaviour
         if (agent.isOnNavMesh)
         {
             agent.SetDestination(destination);
+            isMovingToTarget = true;
 
             if (currentMarker == null && moveMarkerPrefab != null)
             {
@@ -85,12 +87,17 @@ public class UnitsController : MonoBehaviour
 
     private void CheckDestinationReached()
     {
-        if (currentMarker == null || !currentMarker.activeSelf) return;
+        if (!isMovingToTarget) return;
 
-        // Проверяем, остался ли у агента путь, и дошел ли он до конечной точки
+        // Когда юнит дошел до точки назначения
         if (!agent.pathPending && agent.remainingDistance <= stopMarkerDistance)
         {
-            currentMarker.SetActive(false); // Прячем маркер, когда цель достигнута
+            isMovingToTarget = false; // Юнит дошел, цель сброшена
+
+            if (currentMarker != null)
+            {
+                currentMarker.SetActive(false); // Скрываем маркер
+            }
         }
     }
 
@@ -110,6 +117,10 @@ public class UnitsController : MonoBehaviour
         if (selectionCircle != null)
         {
             selectionCircle.SetActive(selected);
+        }
+        if (currentMarker != null)
+        {
+            currentMarker.SetActive(selected && isMovingToTarget);
         }
     }
 
