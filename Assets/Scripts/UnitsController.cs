@@ -16,10 +16,17 @@ public class UnitsController : MonoBehaviour
     [SerializeField] private GameObject selectionCircle;
     private bool isSelected = false;
 
+    [Header("Movement Marker")]
+    [Tooltip("Префаб маркера (например, кружок или стрелочка)")]
+    [SerializeField] private GameObject moveMarkerPrefab;
+    [Tooltip("Дистанция до цели, при которой маркер скрывается")]
+    [SerializeField] private float stopMarkerDistance = 0.5f;
+
     private NavMeshAgent agent;
     private Animator animator;
     private Camera mainCamera;
     private float currentHealth;
+    private GameObject currentMarker;
 
     private static readonly int SpeedHash = Animator.StringToHash("Speed");
 
@@ -53,6 +60,7 @@ public class UnitsController : MonoBehaviour
     private void Update()
     {
         UpdateAnimations();
+        CheckDestinationReached();
     }
 
     public void MoveTo(Vector3 destination)
@@ -60,8 +68,41 @@ public class UnitsController : MonoBehaviour
         if (agent.isOnNavMesh)
         {
             agent.SetDestination(destination);
+
+            if (currentMarker == null && moveMarkerPrefab != null)
+            {
+                currentMarker = Instantiate(moveMarkerPrefab);
+            }
+
+            // Перемещаем маркер в новую точку (чуть приподнимаем над землей)
+            if (currentMarker != null)
+            {
+                currentMarker.transform.position = destination + new Vector3(0f, 0.05f, 0f);
+                currentMarker.SetActive(true);
+            }
         }
     }
+
+    private void CheckDestinationReached()
+    {
+        if (currentMarker == null || !currentMarker.activeSelf) return;
+
+        // Проверяем, остался ли у агента путь, и дошел ли он до конечной точки
+        if (!agent.pathPending && agent.remainingDistance <= stopMarkerDistance)
+        {
+            currentMarker.SetActive(false); // Прячем маркер, когда цель достигнута
+        }
+    }
+
+    // Если юнита уничтожат, удаляем и его маркер
+    private void OnDestroy()
+    {
+        if (currentMarker != null)
+        {
+            Destroy(currentMarker);
+        }
+    }
+
     public void SetSelected(bool selected)
     {
         isSelected = selected;

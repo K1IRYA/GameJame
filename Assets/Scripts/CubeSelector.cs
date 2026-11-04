@@ -1,32 +1,38 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class CubeSelector : MonoBehaviour
+public static class TextureUtils
 {
-    public GameObject cube;
-    public LayerMask layer;
-    private Camera _cam;
-    private GameObject _cubeSelection;
-
-    private void Awake()
+    private static Texture2D _whiteTexture;
+    public static Texture2D WhiteTexture
     {
-        _cam = GetComponent<Camera>();
+        get
+        {
+            if (_whiteTexture == null)
+            {
+                _whiteTexture = new Texture2D(1, 1);
+                _whiteTexture.SetPixel(0, 0, Color.white);
+                _whiteTexture.Apply();
+            }
+            return _whiteTexture;
+        }
     }
 
-    private void Update()
+    public static void DrawScreenRect(Rect rect, Color color)
     {
-        if (Input.GetMouseButtonDown(0))
-        {
-            Ray ray = _cam.ScreenPointToRay(Input.mousePosition);
+        GUI.color = color;
+        GUI.DrawTexture(rect, WhiteTexture);
+        GUI.color = Color.white;
+    }
 
-            RaycastHit hit;
-            if (Physics.Raycast(ray, out hit, 1000f, layer))
-            {
-                Instantiate(cube, new Vector3(hit.point.x, 1, hit.point.z), Quaternion.identity);
-            }
-
-
-        }
+    public static void DrawScreenRectBorder(Rect rect, float thickness, Color color)
+    {
+        // Верх
+        DrawScreenRect(new Rect(rect.xMin, rect.yMin, rect.width, thickness), color);
+        // Лев
+        DrawScreenRect(new Rect(rect.xMin, rect.yMin, thickness, rect.height), color);
+        // Право
+        DrawScreenRect(new Rect(rect.xMax - thickness, rect.yMin, thickness, rect.height), color);
+        // Низ
+        DrawScreenRect(new Rect(rect.xMin, rect.yMax - thickness, rect.width, thickness), color);
     }
 }

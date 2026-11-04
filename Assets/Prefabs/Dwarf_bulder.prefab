@@ -6552,6 +6552,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   selectionCircle: {fileID: 1615572851075077974}
+  moveMarkerPrefab: {fileID: 3017515853508790425, guid: 2a704354f70259741ad93ecb7b4ad7ba, type: 3}
+  stopMarkerDistance: 0.5
 --- !u!136 &8707586596067429786
 CapsuleCollider:
   m_ObjectHideFlags: 0
