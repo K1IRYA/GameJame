@@ -8,9 +8,11 @@ public class BuildingGhost : MonoBehaviour
     [Header("Префаб стройплощадки (ConstructionSite)")]
     public GameObject constructionSitePrefab;
 
-    [Header("Материалы")]
+    [Header("Материалы индикации")]
     public Material validMaterial;
     public Material invalidMaterial;
+
+    [Header("Слой земли")]
     public LayerMask groundLayer;
 
     private List<Renderer> ghostRenderers = new List<Renderer>();
@@ -21,22 +23,35 @@ public class BuildingGhost : MonoBehaviour
     private void Awake()
     {
         mainCamera = Camera.main;
+
         Rigidbody rb = GetComponent<Rigidbody>();
         rb.isKinematic = true;
+        rb.useGravity = false;
 
         ghostRenderers.AddRange(GetComponentsInChildren<Renderer>());
-        foreach (var col in GetComponentsInChildren<Collider>()) col.isTrigger = true;
+
+        Collider[] cols = GetComponentsInChildren<Collider>();
+        if (cols.Length == 0)
+        {
+            BoxCollider box = gameObject.AddComponent<BoxCollider>();
+            box.isTrigger = true;
+        }
+        else
+        {
+            foreach (var col in cols)
+            {
+                col.isTrigger = true;
+            }
+        }
     }
 
     private void Update()
     {
         FollowMouse();
+        HandleRotation();
 
-        if (Input.GetKeyDown(KeyCode.R))
-            transform.Rotate(Vector3.up, 45f);
-
-        bool overUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
-        if (Input.GetMouseButtonDown(0) && canBuild && !overUI)
+        bool isOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+        if (Input.GetMouseButtonDown(0) && canBuild && !isOverUI)
         {
             PlaceConstructionSite();
         }
@@ -44,10 +59,20 @@ public class BuildingGhost : MonoBehaviour
 
     private void FollowMouse()
     {
+        if (mainCamera == null) mainCamera = Camera.main;
         Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+
         if (Physics.Raycast(ray, out RaycastHit hit, 1000f, groundLayer))
         {
             transform.position = hit.point;
+        }
+    }
+
+    private void HandleRotation()
+    {
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            transform.Rotate(Vector3.up, 45f);
         }
     }
 
@@ -67,22 +92,27 @@ public class BuildingGhost : MonoBehaviour
 
     private bool IsIgnored(Collider other)
     {
-        if (other == null || other.isTrigger || other.transform.IsChildOf(transform)) return true;
+        if (other == null) return true;
+        if (other.isTrigger) return true;
+        if (other.transform.IsChildOf(transform)) return true;
         if (((1 << other.gameObject.layer) & groundLayer) != 0) return true;
+
         return false;
     }
 
     private void UpdateVisuals()
     {
         canBuild = (overlappingColliders.Count == 0);
-        Material mat = canBuild ? validMaterial : invalidMaterial;
-        if (mat == null) return;
+        Material matToApply = canBuild ? validMaterial : invalidMaterial;
 
-        foreach (var r in ghostRenderers)
+        if (matToApply == null) return;
+
+        foreach (var rend in ghostRenderers)
         {
-            Material[] mats = new Material[r.sharedMaterials.Length];
-            for (int i = 0; i < mats.Length; i++) mats[i] = mat;
-            r.materials = mats;
+            if (rend == null) continue;
+            Material[] mats = new Material[rend.sharedMaterials.Length];
+            for (int i = 0; i < mats.Length; i++) mats[i] = matToApply;
+            rend.materials = mats;
         }
     }
 
@@ -93,27 +123,25 @@ public class BuildingGhost : MonoBehaviour
             GameObject siteObj = Instantiate(constructionSitePrefab, transform.position, transform.rotation);
             ConstructionSite site = siteObj.GetComponent<ConstructionSite>();
 
-            // Отправляем выбранного рабочего на стройку
-            SendSelectedBuilderTo(site);
+            if (site != null)
+            {
+                BuilderUnit[] builders = FindObjectsOfType<BuilderUnit>();
+                foreach (var builder in builders)
+                {
+                    if (builder.IsSelected)
+                    {
+                        builder.AssignBuildTask(site);
+                        break;
+                    }
+                }
+            }
         }
 
         if (BuildSystem.Instance != null)
+        {
             BuildSystem.Instance.ClearCurrentGhost();
+        }
 
         Destroy(gameObject);
-    }
-
-    private void SendSelectedBuilderTo(ConstructionSite site)
-    {
-        // Ищем активного строителя среди выделенных юнитов
-        BuilderUnit[] allBuilders = FindObjectsOfType<BuilderUnit>();
-        foreach (var builder in allBuilders)
-        {
-            if (builder.isSelected)
-            {
-                builder.AssignBuildTask(site);
-                break; // Отправляем одного рабочего (или уберите break, если строить могут сразу несколько)
-            }
-        }
     }
 }

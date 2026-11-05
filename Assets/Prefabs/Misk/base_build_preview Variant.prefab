@@ -12,6 +12,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: base_build_preview Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 4636786230435966173, guid: 984ae067c3ae60842bfe89d6f537c7e0, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 5409663377431508583, guid: 984ae067c3ae60842bfe89d6f537c7e0, type: 3}
       propertyPath: m_LocalPosition.x
       value: 48.116352

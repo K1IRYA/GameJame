@@ -6488,6 +6488,7 @@ GameObject:
   - component: {fileID: 5148503460550036662}
   - component: {fileID: 2048810165766887668}
   - component: {fileID: 4672313527408922933}
+  - component: {fileID: 8304414932369972998}
   - component: {fileID: 8707586596067429786}
   m_Layer: 6
   m_Name: Dwarf_bulder
@@ -6550,10 +6551,24 @@ MonoBehaviour:
   unitData: {fileID: 11400000, guid: 578b7e64352d15a4cb84ca4492f226fd, type: 2}
   groundLayer:
     serializedVersion: 2
-    m_Bits: 1
+    m_Bits: 128
   selectionCircle: {fileID: 1615572851075077974}
   moveMarkerPrefab: {fileID: 7099779022388364720, guid: 2a704354f70259741ad93ecb7b4ad7ba, type: 3}
   stopMarkerDistance: 0.5
+--- !u!114 &8304414932369972998
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7848735157462944776}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e091cf93b3a5d8545b15550dd3804a39, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  buildDistance: 1
+  buildSpeed: 20
 --- !u!136 &8707586596067429786
 CapsuleCollider:
   m_ObjectHideFlags: 0

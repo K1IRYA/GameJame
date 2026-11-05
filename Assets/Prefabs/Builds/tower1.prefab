@@ -69,6 +69,10 @@ PrefabInstance:
       value: tower1
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: eb60d1377f6de2d48b41c860944b6956, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: eb60d1377f6de2d48b41c860944b6956, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
@@ -79,6 +83,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: eb60d1377f6de2d48b41c860944b6956, type: 3}
       insertIndex: -1
       addedObject: {fileID: -6025260802463434870}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: eb60d1377f6de2d48b41c860944b6956, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -3550373055027972116}
   m_SourcePrefab: {fileID: 100100000, guid: eb60d1377f6de2d48b41c860944b6956, type: 3}
 --- !u!1 &4301540069912236466 stripped
 GameObject:
@@ -106,3 +113,19 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 10, y: 18, z: 10.4}
   m_Center: {x: -0.1, y: 8.8, z: 1}
+--- !u!208 &-3550373055027972116
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4301540069912236466}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 1
+  m_Extents: {x: 4.9960003, y: 8.994, z: 5.2110004}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 1
+  m_Center: {x: -0.051000003, y: 8.785001, z: 1.028}
+  m_TimeToStationary: 0.5

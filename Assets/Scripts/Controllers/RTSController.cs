@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class RTSController : MonoBehaviour
 {
@@ -37,6 +38,11 @@ public class RTSController : MonoBehaviour
         // Нажали ЛКМ — фиксируем начало выделения
         if (Input.GetMouseButtonDown(0))
         {
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            {
+                return;
+            }
+
             isDragging = true;
             mouseStartScreenPos = Input.mousePosition;
         }
@@ -120,23 +126,49 @@ public class RTSController : MonoBehaviour
 
     private void HandleOrders()
     {
-        // Клик ПКМ - движение выбранных юнитов
-        if (Input.GetMouseButtonDown(1) && selectedUnits.Count > 0)
+        if (Input.GetMouseButtonDown(1))
         {
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            {
+                return;
+            }
+
             Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
 
-            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer))
+            // 1. Проверяем, кликнули ли мы по стройплощадке (работает ВСЕГДА, даже без выделенных юнитов)
+            if (Physics.Raycast(ray, out RaycastHit siteHit, Mathf.Infinity))
+            {
+                ConstructionSite site = siteHit.collider.GetComponentInParent<ConstructionSite>();
+                if (site != null && !site.IsCompleted)
+                {
+                    if (ConstructionContextMenu.Instance != null)
+                    {
+                        ConstructionContextMenu.Instance.OpenMenu(site, Input.mousePosition);
+                    }
+                    return; // Прерываем обычный приказ идти, так как открыли меню площадки
+                }
+            }
+
+            // 2. Если кликнули не по стройплощадке, закрываем открытое меню, если оно было
+            if (ConstructionContextMenu.Instance != null)
+            {
+                ConstructionContextMenu.Instance.CloseMenu();
+            }
+
+            // 3. Обычное перемещение выделенных юнитов по земле
+            if (selectedUnits.Count > 0 && Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer))
             {
                 for (int i = 0; i < selectedUnits.Count; i++)
                 {
                     if (selectedUnits[i] != null)
                     {
-                        selectedUnits[i].MoveTo(hit.point); // Юнит сам передвинет свой маркер
+                        selectedUnits[i].MoveTo(hit.point);
                     }
                 }
             }
         }
     }
+
 
 
     private void SelectUnit(UnitsController unit)

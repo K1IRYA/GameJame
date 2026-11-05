@@ -108,6 +108,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Site_Tower
       objectReference: {fileID: 0}
+    - target: {fileID: 4301540069912236466, guid: 6a571adb5f14bf04ebbf8a66099c8ceb, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: -4087825153249810780, guid: 6a571adb5f14bf04ebbf8a66099c8ceb, type: 3}
     m_RemovedGameObjects: []

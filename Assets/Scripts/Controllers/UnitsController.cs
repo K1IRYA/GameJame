@@ -14,13 +14,15 @@ public class UnitsController : MonoBehaviour
     [Header("Visual Feedback")]
     [Tooltip("Объект-круг под ногами")]
     [SerializeField] private GameObject selectionCircle;
-    private bool isSelected = false;
 
     [Header("Movement Marker")]
     [Tooltip("Префаб маркера (например, кружок или стрелочка)")]
     [SerializeField] private GameObject moveMarkerPrefab;
     [Tooltip("Дистанция до цели, при которой маркер скрывается")]
     [SerializeField] private float stopMarkerDistance = 0.5f;
+
+    // Публичный статус выделения для BuilderUnit и других систем
+    public bool isSelected { get; private set; } = false;
 
     private NavMeshAgent agent;
     private Animator animator;
@@ -64,10 +66,22 @@ public class UnitsController : MonoBehaviour
         CheckDestinationReached();
     }
 
+
+
     public void MoveTo(Vector3 destination)
     {
-        if (agent.isOnNavMesh)
+        if (agent != null && agent.isOnNavMesh)
         {
+            // Снимаем возможную паузу агента
+            agent.isStopped = false;
+
+            // Если на юните есть компонент строителя — отменяем задачу стройки при обычном движении
+            BuilderUnit builder = GetComponent<BuilderUnit>();
+            if (builder != null)
+            {
+                builder.CancelBuildTask();
+            }
+
             agent.SetDestination(destination);
             isMovingToTarget = true;
 
@@ -76,7 +90,6 @@ public class UnitsController : MonoBehaviour
                 currentMarker = Instantiate(moveMarkerPrefab);
             }
 
-            // Перемещаем маркер в новую точку (чуть приподнимаем над землей)
             if (currentMarker != null)
             {
                 currentMarker.transform.position = destination + new Vector3(0f, 0.05f, 0f);
@@ -126,6 +139,8 @@ public class UnitsController : MonoBehaviour
 
     private void UpdateAnimations()
     {
+        if (animator == null) return;
+
         // Нормализуем скорость относительно максимальной (диапазон 0..1)
         float currentSpeed = agent.velocity.magnitude / (agent.speed > 0f ? agent.speed : 1f);
 
