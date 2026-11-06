@@ -160,7 +160,7 @@ public class RTSController : MonoBehaviour
                 }
 
                 ResourceVein vein = hit.collider.GetComponentInParent<ResourceVein>();
-                if (vein != null && !vein.IsEmpty && vein.resourceType != ResourceType.Wood)
+                if (vein != null && !vein.IsEmpty)
                 {
                     CancelPendingSingleClick();
                     if (ConstructionContextMenu.Instance != null)

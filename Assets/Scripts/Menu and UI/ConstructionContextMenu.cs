@@ -59,14 +59,14 @@ public class ConstructionContextMenu : MonoBehaviour
         OpenMenuInternal(screenPosition);
     }
 
-    // 2. Открытие для жилы руды / металла (GATHER)
+    // 2. Открытие для жилы руды (GATHER)
     public void OpenMenu(ResourceVein vein, Vector2 screenPosition)
     {
         currentVein = vein;
         currentSite = null;
         isGroundContextMenu = false;
 
-        if (actionButtonText != null) actionButtonText.text = "GATHER";
+        if (actionButtonText != null) actionButtonText.text = "Gather";
         if (demolishButton != null) demolishButton.gameObject.SetActive(false);
 
         OpenMenuInternal(screenPosition);
