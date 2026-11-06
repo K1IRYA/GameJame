@@ -1,21 +1,23 @@
 using UnityEngine;
 using UnityEngine.UI;
+using static ResourceType;
 
 public class ResourceManager : MonoBehaviour
 {
-    // Синглтон, чтобы любой скрипт (например, стройка) мог проверить ресурсы через ResourceManager.Instance
     public static ResourceManager Instance { get; private set; }
 
-    [Header("UI Текстовые поля")]
-    [SerializeField] private Text goldText;
+    [Header("UI Счётчики (Legacy Text или TMP_Text)")]
+    [SerializeField] private Text scrapText;
+    [SerializeField] private Text ironText;
     [SerializeField] private Text woodText;
 
-    [Header("Стартовые ресурсы")]
-    [SerializeField] private int gold = 500;
-    [SerializeField] private int wood = 200;
+    [Header("Текущие запасы")]
+    [SerializeField] private int scrapMetal = 0;
+    [SerializeField] private int ironOre = 0;
+    [SerializeField] private int wood = 0;
 
-    // Публичные свойства для чтения текущих ресурсов
-    public int Gold => gold;
+    public int ScrapMetal => scrapMetal;
+    public int IronOre => ironOre;
     public int Wood => wood;
 
     private void Awake()
@@ -26,32 +28,42 @@ public class ResourceManager : MonoBehaviour
         UpdateResourceUI();
     }
 
-    // Метод добавления ресурсов (например, при добыче гномами)
-    public void AddResources(int goldAmount, int woodAmount)
+    public void AddResource(ResourceType type, int amount)
     {
-        gold += goldAmount;
-        wood += woodAmount;
+        switch (type)
+        {
+            case ResourceType.ScrapMetal:
+                scrapMetal += amount;
+                break;
+            case ResourceType.IronOre:
+                ironOre += amount;
+                break;
+            case ResourceType.Wood:
+                wood += amount;
+                break;
+        }
+
         UpdateResourceUI();
     }
 
-    // Метод траты ресурсов (вызывается перед началом строительства башни)
-    public bool TrySpendResources(int goldCost, int woodCost)
+    public bool TrySpendResources(int scrapCost, int ironCost, int woodCost)
     {
-        if (gold >= goldCost && wood >= woodCost)
+        if (scrapMetal >= scrapCost && ironOre >= ironCost)
         {
-            gold -= goldCost;
+            scrapMetal -= scrapCost;
+            ironOre -= ironCost;
             wood -= woodCost;
             UpdateResourceUI();
-            return true; // Успешно потрачено
+            return true;
         }
-        
-        Debug.Log("[Ресурсы] Недостаточно ресурсов для постройки!");
-        return false; // Ресурсов не хватает
+
+        return false;
     }
 
     private void UpdateResourceUI()
     {
-        if (goldText != null) goldText.text = gold.ToString();
+        if (scrapText != null) scrapText.text = scrapMetal.ToString();
+        if (ironText != null) ironText.text = ironOre.ToString();
         if (woodText != null) woodText.text = wood.ToString();
     }
 }

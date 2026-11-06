@@ -26,7 +26,9 @@ public class RTSController : MonoBehaviour
     {
         mainCamera = Camera.main;
     }
-
+    private int rightClickCount = 0;
+    private Coroutine singleClickCoroutine = null;
+    private const float doubleClickThreshold = 0.25f;
     private void Update()
     {
         HandleSelection();
@@ -129,47 +131,87 @@ public class RTSController : MonoBehaviour
         if (Input.GetMouseButtonDown(1))
         {
             if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
-            {
                 return;
-            }
 
             Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
 
-            // 1. Проверяем, кликнули ли мы по стройплощадке (работает ВСЕГДА, даже без выделенных юнитов)
-            if (Physics.Raycast(ray, out RaycastHit siteHit, Mathf.Infinity))
+            // 1. Проверка интерактивных объектов (Стройплощадка / Руда)
+            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity))
             {
-                ConstructionSite site = siteHit.collider.GetComponentInParent<ConstructionSite>();
+                ConstructionSite site = hit.collider.GetComponentInParent<ConstructionSite>();
                 if (site != null && !site.IsCompleted)
                 {
+                    CancelPendingSingleClick();
                     if (ConstructionContextMenu.Instance != null)
-                    {
                         ConstructionContextMenu.Instance.OpenMenu(site, Input.mousePosition);
-                    }
-                    return; // Прерываем обычный приказ идти, так как открыли меню площадки
+                    return;
+                }
+
+                ResourceVein vein = hit.collider.GetComponentInParent<ResourceVein>();
+                if (vein != null && !vein.IsEmpty && vein.resourceType != ResourceType.Wood)
+                {
+                    CancelPendingSingleClick();
+                    if (ConstructionContextMenu.Instance != null)
+                        ConstructionContextMenu.Instance.OpenMenu(vein, Input.mousePosition);
+                    return;
                 }
             }
 
-            // 2. Если кликнули не по стройплощадке, закрываем открытое меню, если оно было
+            // Закрываем открытое меню, если кликаем в новое место
             if (ConstructionContextMenu.Instance != null)
-            {
                 ConstructionContextMenu.Instance.CloseMenu();
-            }
 
-            // 3. Обычное перемещение выделенных юнитов по земле
-            if (selectedUnits.Count > 0 && Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer))
+            // 2. Обработка клика по земле (Одиночный vs Двойной)
+            if (selectedUnits.Count > 0 && Physics.Raycast(ray, out RaycastHit groundHit, Mathf.Infinity, groundLayer))
             {
-                for (int i = 0; i < selectedUnits.Count; i++)
+                rightClickCount++;
+
+                if (rightClickCount == 1)
                 {
-                    if (selectedUnits[i] != null)
+                    // Первый клик: ждем короткую паузу, не отдавая приказ движения сразу
+                    singleClickCoroutine = StartCoroutine(SingleClickDelayRoutine(groundHit.point));
+                }
+                else if (rightClickCount >= 2)
+                {
+                    // Второй клик успел прийти: отменяем одиночное движение!
+                    CancelPendingSingleClick();
+
+                    // Открываем контекстное меню земли
+                    if (ConstructionContextMenu.Instance != null)
                     {
-                        selectedUnits[i].MoveTo(hit.point);
+                        ConstructionContextMenu.Instance.OpenGroundMenu(groundHit.point, Input.mousePosition);
                     }
                 }
             }
         }
     }
 
+    private System.Collections.IEnumerator SingleClickDelayRoutine(Vector3 destination)
+    {
+        yield return new WaitForSeconds(doubleClickThreshold);
 
+        // Время ожидания истекло, второго клика не было — выполняем обычное движение:
+        for (int i = 0; i < selectedUnits.Count; i++)
+        {
+            if (selectedUnits[i] != null)
+            {
+                selectedUnits[i].MoveTo(destination);
+            }
+        }
+
+        rightClickCount = 0;
+        singleClickCoroutine = null;
+    }
+
+    private void CancelPendingSingleClick()
+    {
+        if (singleClickCoroutine != null)
+        {
+            StopCoroutine(singleClickCoroutine);
+            singleClickCoroutine = null;
+        }
+        rightClickCount = 0;
+    }
 
     private void SelectUnit(UnitsController unit)
     {

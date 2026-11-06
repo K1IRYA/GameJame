@@ -6569,6 +6569,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   buildDistance: 1
   buildSpeed: 20
+  gatherDistance: 3.5
+  gatherSpeed: 5
+  maxCarryCapacity: 50
 --- !u!136 &8707586596067429786
 CapsuleCollider:
   m_ObjectHideFlags: 0

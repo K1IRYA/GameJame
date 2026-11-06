@@ -5,69 +5,103 @@ public class ConstructionContextMenu : MonoBehaviour
 {
     public static ConstructionContextMenu Instance { get; private set; }
 
-    [Header("Панель меню")]
+    [Header("UI Элементы меню")]
     [SerializeField] private GameObject menuPanel;
     [SerializeField] private Button buildButton;
     [SerializeField] private Button demolishButton;
+    [SerializeField] private Text actionButtonText;
+    [SerializeField] private Text demolishButtonText;
 
     private ConstructionSite currentSite;
-    private Camera mainCamera;
+    private ResourceVein currentVein;
+    private Vector3 targetGroundPoint;
+    private bool isGroundContextMenu = false;
 
     private void Awake()
     {
         if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
 
-        mainCamera = Camera.main;
+        // Перепривязываем слушатели кнопок на универсальные методы
+        if (buildButton != null)
+        {
+            buildButton.onClick.RemoveAllListeners();
+            buildButton.onClick.AddListener(OnPrimaryActionClicked);
+        }
+
+        if (demolishButton != null)
+        {
+            demolishButton.onClick.RemoveAllListeners();
+            demolishButton.onClick.AddListener(OnSecondaryActionClicked);
+        }
 
         if (menuPanel != null)
         {
             menuPanel.SetActive(false);
         }
-
-        if (buildButton != null)
-        {
-            buildButton.onClick.AddListener(OnBuildClicked);
-        }
-
-        if (demolishButton != null)
-        {
-            demolishButton.onClick.AddListener(OnDemolishClicked);
-        }
     }
 
-    private void Update()
-    {
-        // Закрываем меню при клике ЛКМ в пустоту или по клавише Escape
-        if (menuPanel != null && menuPanel.activeSelf)
-        {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                CloseMenu();
-            }
-        }
-    }
-
+    // 1. Открытие для стройплощадки (BUILD / DEMOLISH)
     public void OpenMenu(ConstructionSite site, Vector2 screenPosition)
     {
         currentSite = site;
+        currentVein = null;
+        isGroundContextMenu = false;
 
+        if (actionButtonText != null) actionButtonText.text = "Build";
+        if (demolishButtonText != null) demolishButtonText.text = "Remove";
+        if (demolishButton != null) demolishButton.gameObject.SetActive(true);
+
+        OpenMenuInternal(screenPosition);
+    }
+
+    // 2. Открытие для жилы руды / металла (GATHER)
+    public void OpenMenu(ResourceVein vein, Vector2 screenPosition)
+    {
+        currentVein = vein;
+        currentSite = null;
+        isGroundContextMenu = false;
+
+        if (actionButtonText != null) actionButtonText.text = "GATHER";
+        if (demolishButton != null) demolishButton.gameObject.SetActive(false);
+
+        OpenMenuInternal(screenPosition);
+    }
+
+    // 3. Открытие по двойному клику ПКМ по земле (CHOP WOOD / MOVE TO)
+    public void OpenGroundMenu(Vector3 groundPoint, Vector2 screenPosition)
+    {
+        targetGroundPoint = groundPoint;
+        isGroundContextMenu = true;
+        currentSite = null;
+        currentVein = null;
+
+        if (actionButtonText != null) actionButtonText.text = "Chop wood";
+        if (demolishButtonText != null) demolishButtonText.text = "Move to";
+        if (demolishButton != null) demolishButton.gameObject.SetActive(true);
+
+        OpenMenuInternal(screenPosition);
+    }
+
+    private void OpenMenuInternal(Vector2 screenPosition)
+    {
         if (menuPanel != null)
         {
             menuPanel.SetActive(true);
-
-            // Получаем RectTransform меню и канваса
             RectTransform panelRect = menuPanel.GetComponent<RectTransform>();
             Canvas parentCanvas = menuPanel.GetComponentInParent<Canvas>();
 
             if (parentCanvas != null && panelRect != null)
             {
-                // Для Canvas в режиме Screen Space - Overlay:
                 if (parentCanvas.renderMode == RenderMode.ScreenSpaceOverlay)
                 {
                     panelRect.position = screenPosition;
                 }
-                else // Для режима Screen Space - Camera:
+                else
                 {
                     RectTransformUtility.ScreenPointToLocalPointInRectangle(
                         parentCanvas.transform as RectTransform,
@@ -83,62 +117,87 @@ public class ConstructionContextMenu : MonoBehaviour
                 menuPanel.transform.position = screenPosition;
             }
 
-            // Гарантируем, что панель отрисуется поверх всех остальных UI элементов
             menuPanel.transform.SetAsLastSibling();
         }
     }
 
-
-    public void CloseMenu()
+    // Обработка верхней кнопки (CHOP WOOD / BUILD / GATHER)
+    private void OnPrimaryActionClicked()
     {
-        currentSite = null;
-        if (menuPanel != null)
+        if (isGroundContextMenu)
         {
-            menuPanel.SetActive(false);
-        }
-    }
-
-    private void OnBuildClicked()
-    {
-        if (currentSite == null) return;
-
-        // Ищем всех строителей и отправляем тех, кто выделен
-        BuilderUnit[] builders = FindObjectsOfType<BuilderUnit>();
-        bool anyAssigned = false;
-
-        foreach (var builder in builders)
-        {
-            if (builder.IsSelected)
+            BuilderUnit[] builders = Object.FindObjectsByType<BuilderUnit>(FindObjectsSortMode.None);
+            foreach (var builder in builders)
             {
-                builder.AssignBuildTask(currentSite);
-                anyAssigned = true;
+                if (builder != null && builder.IsSelected)
+                {
+                    builder.AssignChopAreaTask(targetGroundPoint, 20f);
+                }
             }
         }
-
-        if (!anyAssigned)
+        else if (currentSite != null)
         {
-            Debug.Log("[Контекстное меню] Ни один строитель не выбран!");
+            BuilderUnit[] builders = Object.FindObjectsByType<BuilderUnit>(FindObjectsSortMode.None);
+            foreach (var builder in builders)
+            {
+                if (builder != null && builder.IsSelected)
+                {
+                    builder.AssignBuildTask(currentSite);
+                }
+            }
+        }
+        else if (currentVein != null)
+        {
+            BuilderUnit[] builders = Object.FindObjectsByType<BuilderUnit>(FindObjectsSortMode.None);
+            foreach (var builder in builders)
+            {
+                if (builder != null && builder.IsSelected)
+                {
+                    builder.AssignGatherTask(currentVein);
+                }
+            }
         }
 
         CloseMenu();
     }
 
-    private void OnDemolishClicked()
+    // Обработка нижней кнопки (MOVE TO / DEMOLISH)
+    private void OnSecondaryActionClicked()
     {
-        if (currentSite != null)
+        if (isGroundContextMenu)
         {
-            // Отменяем задачу у всех строителей, которые шли строить этот объект
-            BuilderUnit[] builders = FindObjectsOfType<BuilderUnit>();
+            UnitsController[] units = Object.FindObjectsByType<UnitsController>(FindObjectsSortMode.None);
+            foreach (var unit in units)
+            {
+                if (unit != null && unit.isSelected)
+                {
+                    unit.MoveTo(targetGroundPoint);
+                }
+            }
+        }
+        else if (currentSite != null)
+        {
+            BuilderUnit[] builders = Object.FindObjectsByType<BuilderUnit>(FindObjectsSortMode.None);
             foreach (var builder in builders)
             {
-                builder.CancelBuildTask();
+                if (builder != null) builder.CancelAllTasks();
             }
 
-            // Удаляем саму стройплощадку
             Destroy(currentSite.gameObject);
             currentSite = null;
         }
 
         CloseMenu();
+    }
+
+    public void CloseMenu()
+    {
+        if (menuPanel != null)
+        {
+            menuPanel.SetActive(false);
+        }
+        currentSite = null;
+        currentVein = null;
+        isGroundContextMenu = false;
     }
 }

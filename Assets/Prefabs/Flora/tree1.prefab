@@ -52,8 +52,63 @@ PrefabInstance:
       propertyPath: m_Name
       value: tree1
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2cb5e3b0a76e8764795c411f2aef8919, type: 3}
+      propertyPath: m_Layer
+      value: 9
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 2cb5e3b0a76e8764795c411f2aef8919, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3395948194441202851}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 2cb5e3b0a76e8764795c411f2aef8919, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6491668605109461007}
   m_SourcePrefab: {fileID: 100100000, guid: 2cb5e3b0a76e8764795c411f2aef8919, type: 3}
+--- !u!1 &7687689582483442188 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 2cb5e3b0a76e8764795c411f2aef8919, type: 3}
+  m_PrefabInstance: {fileID: 7381752871398192989}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3395948194441202851
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7687689582483442188}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53ce2340d04d7f34dab1b08eb9e00069, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  resourceType: 2
+  isInfinite: 0
+  maxResources: 50
+  currentResources: 50
+  stumpPrefab: {fileID: 4271305293291318952, guid: 904eed67ae1de32458b9182c3ab9e470, type: 3}
+--- !u!136 &6491668605109461007
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7687689582483442188}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 2.5
+  m_Height: 7.4
+  m_Direction: 1
+  m_Center: {x: 0, y: 3.5, z: 0}

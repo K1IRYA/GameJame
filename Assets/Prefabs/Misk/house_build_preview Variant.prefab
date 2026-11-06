@@ -52,6 +52,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: house_build_preview Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 3126460195025685451, guid: 6659d810bc824624182395c27024a669, type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 3486796063049263646, guid: 6659d810bc824624182395c27024a669, type: 3}
       propertyPath: m_Materials.Array.size
       value: 16
