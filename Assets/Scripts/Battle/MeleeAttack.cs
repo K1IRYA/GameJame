@@ -27,17 +27,32 @@ public class MeleeAttack : MonoBehaviour
 
     private void Start()
     {
-        // Инициализируем базовые дистанции из настроек данных юнита
+        // Инициализируем базовые дистанции из настроек данных юнита гнома
         if (boundUnit != null && boundUnit.Data != null)
         {
             currentRange = boundUnit.Data.attackRange;
             currentDamage = boundUnit.Data.attackDamage;
             currentCooldown = boundUnit.Data.attackCooldown;
         }
+        // ИЛИ инициализируем из настроек ИИ врага, если это универсальный милишник-куб
+        else
+        {
+            EnemyAI enemy = GetComponent<EnemyAI>();
+            if (enemy != null && enemy.Data != null)
+            {
+                currentRange = enemy.Data.attackRange;
+                currentDamage = enemy.Data.attackDamage;
+                currentCooldown = enemy.Data.attackCooldown;
+            }
+        }
     }
+
 
     private void Update()
     {
+        // Если этот универсальный скрипт висит на враге, движением управляет исключительно EnemyAI
+        if (boundUnit == null && GetComponent<EnemyAI>() != null) return;
+
         // Если враг погиб, сбрасываем состояние
         if (targetEnemyHealth == null) return;
 
@@ -113,4 +128,17 @@ public class MeleeAttack : MonoBehaviour
             agent.isStopped = false;
         }
     }
+
+    // Универсальный метод удара для вызова из мозгов EnemyAI
+    public void AttackTargetFromAI(Health target)
+    {
+        if (target == null || target.IsDead) return;
+        targetEnemyHealth = target;
+
+        if (Time.time >= nextAttackTime)
+        {
+            ExecuteAttack();
+        }
+    }
 }
+

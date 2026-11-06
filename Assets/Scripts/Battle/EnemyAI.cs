@@ -22,12 +22,14 @@ public class EnemyAI : MonoBehaviour
     private Health currentTargetHealth;
     private float nextAttackTime;
     private RangedAttack rangedAttackComponent;
+    private MeleeAttack meleeAttackComponent;
 
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
         health = GetComponent<Health>();
         rangedAttackComponent = GetComponent<RangedAttack>();
+        meleeAttackComponent = GetComponent<MeleeAttack>();
 
         if (enemyData != null)
         {
@@ -58,14 +60,113 @@ public class EnemyAI : MonoBehaviour
             yield return new WaitForSeconds(0.5f);
         }
     }
+
+    private void Update()
+    {
+        if (health.IsDead) return;
+
+        // Если цели нет или она погибла, останавливаемся
+        if (currentTargetHealth == null || currentTargetHealth.IsDead)
+        {
+            if (agent != null && agent.isOnNavMesh) agent.isStopped = true;
+            return;
+        }
+
+        float distance = Vector3.Distance(transform.position, currentTargetHealth.transform.position);
+        float attackRange = enemyData != null ? enemyData.attackRange : 2f;
+
+        // Фаза атаки
+        if (distance <= attackRange)
+        {
+            if (agent != null && agent.isOnNavMesh) agent.isStopped = true;
+
+            // Поворот к цели
+            Vector3 lookDir = (currentTargetHealth.transform.position - transform.position).normalized;
+            lookDir.y = 0f;
+            if (lookDir != Vector3.zero)
+            {
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(lookDir), Time.deltaTime * 8f);
+            }
+            // Универсальная атака: Дальний бой или Ближний бой через профильные компоненты
+            if (rangedAttackComponent != null)
+            {
+                rangedAttackComponent.AttackTargetFromAI(currentTargetHealth);
+            }
+            else if (meleeAttackComponent != null)
+            {
+                meleeAttackComponent.AttackTargetFromAI(currentTargetHealth);
+            }
+            else if (Time.time >= nextAttackTime)
+            {
+                // Резервный хардкод урона, если забыли повесить боевой компонент
+                nextAttackTime = Time.time + (enemyData != null ? enemyData.attackCooldown : 1f);
+                currentTargetHealth.TakeDamage(enemyData != null ? enemyData.attackDamage : 10f);
+
+                Animator anim = GetComponentInChildren<Animator>();
+                if (anim != null) anim.SetTrigger("Attack");
+            }
+        }
+        // Фаза преследования
+        else
+        {
+            if (agent != null && agent.isOnNavMesh)
+            {
+                agent.isStopped = false;
+
+                // Корректируем точку назначения: если цель — постройка, ищем ближайшую валидную точку на синей сетке NavMesh
+                Vector3 targetPosition = currentTargetHealth.transform.position;
+                if (currentTargetHealth.GetComponent<BuildingTypeInfo>() != null)
+                {
+                    NavMeshHit hit;
+                    if (NavMesh.SamplePosition(targetPosition, out hit, 20f, NavMesh.AllAreas))
+                    {
+                        targetPosition = hit.position;
+                    }
+                }
+
+                agent.SetDestination(targetPosition);
+
+                // ПРОВЕРКА НА ПРЕПЯТСТВИЯ: Если агент упёрся или путь частичный (заблокирован стеной)
+                if (agent.pathStatus == UnityEngine.AI.NavMeshPathStatus.PathPartial || (agent.hasPath && agent.velocity.sqrMagnitude < 0.1f))
+                {
+                    // Пускаем короткий луч вперед на уровне пояса врага для поиска забора
+                    Vector3 rayOrigin = transform.position + Vector3.up * 0.5f;
+                    RaycastHit hit;
+
+                    if (Physics.Raycast(rayOrigin, transform.forward, out hit, 2.5f, targetLayers))
+                    {
+                        BuildingTypeInfo buildingInfo = hit.collider.GetComponentInParent<BuildingTypeInfo>();
+                        // Если впереди забор или обычная постройка, мешающая пройти
+                        if (buildingInfo != null && (buildingInfo.Type == BuildingTypeInfo.BuildingType.Wall || buildingInfo.Type == BuildingTypeInfo.BuildingType.OtherBuilding))
+                        {
+                            Health obstacleHealth = buildingInfo.GetComponentInParent<Health>();
+                            if (obstacleHealth != null && !obstacleHealth.IsDead)
+                            {
+                                // Переключаем ярость на забор перед носом
+                                currentTargetHealth = obstacleHealth;
+                                agent.isStopped = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     private void FindBestPriorityTarget()
     {
+        // Удерживаем цель БЕЗ пересканирования ТОЛЬКО если это живой Гном или атакующая Башня
         if (currentTargetHealth != null && !currentTargetHealth.IsDead)
         {
-            if (currentTargetHealth.GetComponent<BuilderUnit>() != null) return;
-            var currentBuilding = currentTargetHealth.GetComponent<BuildingTypeInfo>();
-            if (currentBuilding != null && currentBuilding.Type == BuildingTypeInfo.BuildingType.Tower) return;
+            bool isTargetBuilder = currentTargetHealth.GetComponent<BuilderUnit>() != null || currentTargetHealth.GetComponentInParent<BuilderUnit>() != null;
+            BuildingTypeInfo currentBuilding = currentTargetHealth.GetComponent<BuildingTypeInfo>() ?? currentTargetHealth.GetComponentInParent<BuildingTypeInfo>();
+            bool isTargetTower = currentBuilding != null && currentBuilding.Type == BuildingTypeInfo.BuildingType.Tower;
+
+            if (isTargetBuilder || isTargetTower)
+            {
+                return; // Спокойно продолжаем бить гнома/башню, не отвлекаясь ни на что другое
+            }
         }
+
         Collider[] colliders = Physics.OverlapSphere(transform.position, scanRadius, targetLayers);
 
         Health bestBuilder = null;
@@ -108,83 +209,25 @@ public class EnemyAI : MonoBehaviour
         else if (globalBase != null) currentTargetHealth = globalBase;
         else
         {
-            // Если в радиусе видимости ничего нет, ищем Ратушу глобально на всей сцене
+            // 1. Сначала ищем стандартно по компоненту выгрузки
             var dropOff = Object.FindAnyObjectByType<ResourceDropOff>();
-            if (dropOff != null) currentTargetHealth = dropOff.GetComponent<Health>();
-        }
-    }
-    private void Update()
-    {
-        if (health.IsDead) return;
-
-        // Если цели нет или она погибла, останавливаемся
-        if (currentTargetHealth == null || currentTargetHealth.IsDead)
-        {
-            if (agent != null && agent.isOnNavMesh) agent.isStopped = true;
-            return;
-        }
-
-        float distance = Vector3.Distance(transform.position, currentTargetHealth.transform.position);
-        float attackRange = enemyData != null ? enemyData.attackRange : 2f;
-
-        // Фаза атаки
-        if (distance <= attackRange)
-        {
-            if (agent != null && agent.isOnNavMesh) agent.isStopped = true;
-
-            // Поворот к цели
-            Vector3 lookDir = (currentTargetHealth.transform.position - transform.position).normalized;
-            lookDir.y = 0f;
-            if (lookDir != Vector3.zero)
+            if (dropOff != null)
             {
-                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(lookDir), Time.deltaTime * 8f);
+                currentTargetHealth = dropOff.GetComponent<Health>();
+                if (currentTargetHealth == null) currentTargetHealth = dropOff.GetComponentInParent<Health>();
             }
-            // Универсальная атака: Дальний бой или Ближний бой
-            if (rangedAttackComponent != null)
-            {
-                rangedAttackComponent.AttackTargetFromAI(currentTargetHealth);
-            }
-            else if (Time.time >= nextAttackTime)
-            {
-                nextAttackTime = Time.time + (enemyData != null ? enemyData.attackCooldown : 1f);
-                currentTargetHealth.TakeDamage(enemyData != null ? enemyData.attackDamage : 10f);
-                
-                Animator anim = GetComponentInChildren<Animator>();
-                if (anim != null) anim.SetTrigger("Attack");
-            }
-        }
-        // Фаза преследования
-        else
-        {
-            if (agent != null && agent.isOnNavMesh)
-            {
-                agent.isStopped = false;
-                agent.SetDestination(currentTargetHealth.transform.position);
 
-                // ПРОВЕРКА НА ПРЕПЯТСТВИЯ: Если агент упёрся или путь частичный (заблокирован стеной)
-                if (agent.pathStatus == UnityEngine.AI.NavMeshPathStatus.PathPartial || (agent.hasPath && agent.velocity.sqrMagnitude < 0.1f))
+            // 2. РЕЗЕРВНЫЙ ВАРИАНТ: Если компонент не нашелся, жестко ищем объект по имени "base"
+            if (currentTargetHealth == null)
+            {
+                GameObject baseGo = GameObject.Find("base");
+                if (baseGo != null)
                 {
-                    // Пускаем короткий луч вперед на уровне пояса врага для поиска забора
-                    Vector3 rayOrigin = transform.position + Vector3.up * 0.5f;
-                    RaycastHit hit;
-
-                    if (Physics.Raycast(rayOrigin, transform.forward, out hit, 2.5f, targetLayers))
-                    {
-                        BuildingTypeInfo buildingInfo = hit.collider.GetComponentInParent<BuildingTypeInfo>();
-                        // Если впереди забор или обычная постройка, мешающая пройти
-                        if (buildingInfo != null && (buildingInfo.Type == BuildingTypeInfo.BuildingType.Wall || buildingInfo.Type == BuildingTypeInfo.BuildingType.OtherBuilding))
-                        {
-                            Health obstacleHealth = buildingInfo.GetComponentInParent<Health>();
-                            if (obstacleHealth != null && !obstacleHealth.IsDead)
-                            {
-                                // Переключаем ярость на забор перед носом
-                                currentTargetHealth = obstacleHealth;
-                                agent.isStopped = true;
-                            }
-                        }
-                    }
+                    currentTargetHealth = baseGo.GetComponent<Health>();
+                    if (currentTargetHealth == null) currentTargetHealth = baseGo.GetComponentInChildren<Health>();
                 }
             }
         }
     }
+    
 }

@@ -6491,6 +6491,7 @@ GameObject:
   - component: {fileID: 8304414932369972998}
   - component: {fileID: 8707586596067429786}
   - component: {fileID: -2949158213856009850}
+  - component: {fileID: 3822280227927944985}
   m_Layer: 6
   m_Name: Dwarf_bulder
   m_TagString: Untagged
@@ -6606,6 +6607,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b9ac63f6d2c0a6b4cb0df963fa218f4b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &3822280227927944985
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7848735157462944776}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 603fe3322eb4a7947b8a976e6f2ebf80, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &7990709612194019747

@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 8617067696841732797}
   - component: {fileID: 2252972813025659140}
   - component: {fileID: 7568080267359437856}
+  - component: {fileID: -5832857749525100039}
   m_Layer: 10
   m_Name: Enemy_test
   m_TagString: Untagged
@@ -159,3 +160,15 @@ MonoBehaviour:
   targetLayers:
     serializedVersion: 2
     m_Bits: 577
+--- !u!114 &-5832857749525100039
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2359690321392461280}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9ac63f6d2c0a6b4cb0df963fa218f4b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
