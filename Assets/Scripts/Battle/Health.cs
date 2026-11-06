@@ -17,7 +17,7 @@ public class Health : MonoBehaviour
             return;
         }
 
-        // 2. ДОБАВЛЕНО: Если это враг со своим скриптом EnemyAI
+        // 2. Если это враг со своим скриптом EnemyAI
         EnemyAI enemy = GetComponent<EnemyAI>();
         if (enemy != null && enemy.Data != null)
         {
@@ -25,13 +25,18 @@ public class Health : MonoBehaviour
             return;
         }
 
-        // 3. Если это здание с настроенным ScriptableObject UnitData
-        BuildingTypeInfo building = GetComponent<BuildingTypeInfo>();
-        if (building != null && building.Data != null)
+        // 3. Если это здание (ищем компонент, даже если он выключен в инспекторе)
+        BuildingTypeInfo building = GetComponent<BuildingTypeInfo>() ?? GetComponentInChildren<BuildingTypeInfo>();
+        if (building != null)
         {
-            SetupHealth(building.Data.maxHealth);
+            // Если дата настроена — берем из SO, если нет или компонент пустой — даем резервные 250 HP забора
+            float targetHP = (building.Data != null) ? building.Data.maxHealth : 250f;
+            SetupHealth(targetHP);
             return;
         }
+
+        // Резервный хардкод здоровья для любых забытых объектов на сцене
+        SetupHealth(100f);
     }
 
     public void SetupHealth(float maxHP)
@@ -46,6 +51,9 @@ public class Health : MonoBehaviour
 
         currentHealth = Mathf.Max(0f, currentHealth - amount);
 
+        // Отладка: пишем в консоль, кто получил урон и сколько осталось HP
+        Debug.Log($"[{gameObject.name}] Получил урон: {amount}. Осталось HP: {currentHealth}/{maxHealth}");
+
         if (IsDead)
         {
             Die();
@@ -54,7 +62,7 @@ public class Health : MonoBehaviour
 
     private void Die()
     {
-        // Логика смерти (запуск анимации смерти, удаление со сцены и т.д.)
+        Debug.Log($"[{gameObject.name}] ПОЛНОСТЬЮ УНИЧТОЖЕН!");
         Destroy(gameObject);
     }
 }

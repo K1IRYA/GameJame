@@ -156,7 +156,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyData: {fileID: 11400000, guid: d25fb7a54b2794840a08729e0302f3b7, type: 2}
-  scanRadius: 15
+  scanRadius: 50
   targetLayers:
     serializedVersion: 2
     m_Bits: 577
