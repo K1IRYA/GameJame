@@ -83,8 +83,6 @@ public class MeleeAttack : MonoBehaviour
     public void AttackTarget(Health enemyHealth)
     {
         if (enemyHealth == null || enemyHealth.IsDead) return;
-        Debug.Log($"[MeleeAttack] Гном получил приказ атаковать: {enemyHealth.gameObject.name}");
-        if (enemyHealth == null || enemyHealth.IsDead) return;
 
         BuilderUnit builder = GetComponent<BuilderUnit>();
         if (builder != null) builder.CancelAllTasks();
