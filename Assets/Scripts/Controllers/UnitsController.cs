@@ -26,8 +26,6 @@ public class UnitsController : MonoBehaviour
 
     private NavMeshAgent agent;
     private Animator animator;
-    private Camera mainCamera;
-    private float currentHealth;
     private GameObject currentMarker;
     private bool isMovingToTarget = false;
 
@@ -37,7 +35,6 @@ public class UnitsController : MonoBehaviour
     {
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponentInChildren<Animator>();
-        mainCamera = Camera.main;
 
         ApplyUnitStats();
         SetSelected(false);
@@ -56,8 +53,7 @@ public class UnitsController : MonoBehaviour
         agent.angularSpeed = unitData.angularSpeed;
         agent.acceleration = unitData.acceleration;
 
-        // Инициализируем здоровье
-        currentHealth = unitData.maxHealth;
+     
     }
 
     private void Update()
@@ -150,5 +146,4 @@ public class UnitsController : MonoBehaviour
 
     // Свойства для внешнего доступа
     public UnitData Data => unitData;
-    public float CurrentHealth => currentHealth;
 }

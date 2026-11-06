@@ -45,16 +45,19 @@ public class UnitPortraitUI : MonoBehaviour
         if (healthBarFill == null || boundUnit == null) return;
 
         // Если у вас в скрипте юнита есть поля здоровья (например, currentHealth / maxHealth)
-        // Замените обращение на ваши переменные. По умолчанию берем процент от 0 до 1:
         float healthPercent = GetUnitHealthPercent();
         healthBarFill.fillAmount = Mathf.Clamp01(healthPercent);
     }
 
     private float GetUnitHealthPercent()
     {
-        if (boundUnit != null && boundUnit.Data != null && boundUnit.Data.maxHealth > 0f)
+        if (boundUnit != null)
         {
-            return boundUnit.CurrentHealth / boundUnit.Data.maxHealth;
+            Health h = boundUnit.GetComponent<Health>();
+            if (h != null && h.maxHealth > 0f)
+            {
+                return h.currentHealth / h.maxHealth;
+            }
         }
 
         return 1.0f;

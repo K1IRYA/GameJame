@@ -4,9 +4,12 @@ using UnityEngine;
 public class UnitData : ScriptableObject
 {
     [Header("General Info")]
+    [Tooltip("Это здание?")]
+    public bool IsBuild = false;
     public string unitName = "DWAAAARF";
+    public Faction faction = Faction.Player;
     public Sprite portraitIcon;
-    [TextArea] public string description = "Добывает ресурсы и строит здания."; 
+    [TextArea] public string description = "Добывает ресурсы и строит здания.";
 
 
     [Header("Movement")]
@@ -17,9 +20,8 @@ public class UnitData : ScriptableObject
     [Tooltip("Ускорение NavMeshAgent")]
     public float acceleration = 8f;
 
-    [Header("Health & Defense")]
+    [Header("Health")]
     public float maxHealth = 100f;
-    public float armor = 2f;
 
     [Header("Combat (Optional)")]
     public float attackDamage = 10f;

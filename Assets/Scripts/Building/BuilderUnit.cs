@@ -28,7 +28,7 @@ public class BuilderUnit : MonoBehaviour
     private float gatherTimer = 0f;
     private Animator animator;
     private static readonly int IsBuildingHash = Animator.StringToHash("IsBuilding");
-
+    private static readonly int AttackTriggerHash = Animator.StringToHash("Attack");
 
     public bool IsSelected => unitController != null && unitController.isSelected;
 
@@ -164,6 +164,12 @@ public class BuilderUnit : MonoBehaviour
                 if (gatherTimer >= 1f)
                 {
                     gatherTimer = 0f;
+
+                    if (animator != null)
+                    {
+                        animator.SetTrigger(AttackTriggerHash);
+                    }
+
                     int needed = maxCarryCapacity - currentCarriedAmount;
                     int mined = targetVein.ExtractResource(Mathf.Min((int)gatherSpeed, needed));
 
@@ -186,6 +192,7 @@ public class BuilderUnit : MonoBehaviour
             {
                 if (agent != null && agent.isOnNavMesh)
                 {
+                    if (animator != null) animator.SetBool(IsBuildingHash, false);
                     agent.isStopped = false;
                     Vector3 dir = (transform.position - veinPoint).normalized;
                     dir.y = 0f;

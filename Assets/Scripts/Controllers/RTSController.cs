@@ -147,9 +147,40 @@ public class RTSController : MonoBehaviour
 
             Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
 
-            // 1. Проверка интерактивных объектов (Стройплощадка / Руда)
+            // 1. Проверка интерактивных объектов (Стройплощадка / Руда / Атака Врага)
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity))
             {
+                Health enemyHealth = hit.collider.GetComponentInParent<Health>();
+                if (enemyHealth != null && !enemyHealth.IsDead)
+                {
+                    Faction targetFaction = Faction.Neutral;
+
+                    UnitsController allianceUnit = enemyHealth.GetComponent<UnitsController>();
+                    EnemyAI enemyUnit = enemyHealth.GetComponent<EnemyAI>();
+
+                    if (allianceUnit != null && allianceUnit.Data != null) targetFaction = allianceUnit.Data.faction;
+                    else if (enemyUnit != null && enemyUnit.Data != null) targetFaction = enemyUnit.Data.faction;
+
+                    if (targetFaction == Faction.Enemy)
+                    {
+                        CancelPendingSingleClick();
+
+                        for (int i = 0; i < selectedUnits.Count; i++)
+                        {
+                            if (selectedUnits[i] != null)
+                            {
+                                MeleeAttack melee = selectedUnits[i].GetComponent<MeleeAttack>();
+                                if (melee != null) melee.AttackTarget(enemyHealth);
+
+                                //RangedAttack ranged = selectedUnits[i].GetComponent<RangedAttack>();
+                                //if (ranged != null) ranged.AttackTarget(enemyHealth);
+                            }
+                        }
+                        return;
+                    }
+                }
+
+                // Клик по стройплощадке
                 ConstructionSite site = hit.collider.GetComponentInParent<ConstructionSite>();
                 if (site != null && !site.IsCompleted)
                 {
@@ -159,6 +190,7 @@ public class RTSController : MonoBehaviour
                     return;
                 }
 
+                // Клик по жиле ресурсов (руда, металл, дерево)
                 ResourceVein vein = hit.collider.GetComponentInParent<ResourceVein>();
                 if (vein != null && !vein.IsEmpty)
                 {
