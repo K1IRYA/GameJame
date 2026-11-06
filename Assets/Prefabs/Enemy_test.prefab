@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 8617067696841732797}
   - component: {fileID: 2252972813025659140}
   - component: {fileID: 7568080267359437856}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Enemy_test
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -155,3 +155,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyData: {fileID: 11400000, guid: d25fb7a54b2794840a08729e0302f3b7, type: 2}
+  scanRadius: 15
+  targetLayers:
+    serializedVersion: 2
+    m_Bits: 577

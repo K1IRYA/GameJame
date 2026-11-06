@@ -24,6 +24,14 @@ public class Health : MonoBehaviour
             SetupHealth(enemy.Data.maxHealth);
             return;
         }
+
+        // 3. Если это здание с настроенным ScriptableObject UnitData
+        BuildingTypeInfo building = GetComponent<BuildingTypeInfo>();
+        if (building != null && building.Data != null)
+        {
+            SetupHealth(building.Data.maxHealth);
+            return;
+        }
     }
 
     public void SetupHealth(float maxHP)
