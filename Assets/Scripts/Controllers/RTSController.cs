@@ -33,6 +33,11 @@ public class RTSController : MonoBehaviour
     {
         HandleSelection();
         HandleOrders();
+
+        // ДОБАВЛЕНО: обновляем UI при изменении состава выделенных
+        if (UnitSelectionUIManager.Instance != null)
+            UnitSelectionUIManager.Instance.UpdateSelectionDisplay(selectedUnits);
+
     }
 
     private void HandleSelection()
@@ -49,9 +54,16 @@ public class RTSController : MonoBehaviour
             mouseStartScreenPos = Input.mousePosition;
         }
 
-        // Отпустили ЛКМ — завершаем выделение и собираем юнитов
+        // Отпустили ЛКМ – завершаем выделение и собираем юнитов
         if (Input.GetMouseButtonUp(0))
         {
+            // Игнорируем завершение выделения на земле, если отпустили мышь над UI-элементом
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            {
+                isDragging = false;
+                return;
+            }
+
             if (isDragging)
             {
                 // Если мы почти не двигали мышь, считаем это обычным одиночным кликом
@@ -232,6 +244,45 @@ public class RTSController : MonoBehaviour
             }
         }
         selectedUnits.Clear();
+
+        // ДОБАВЛЕНО: сброс красной панели при снятии выделения
+        if (UnitSelectionUIManager.Instance != null)
+            UnitSelectionUIManager.Instance.UpdateSelectionDisplay(selectedUnits);
+
+    }
+
+    // Выделить вообще всех союзников на карте
+    public void SelectAllUnits()
+    {
+        DeselectAll();
+        UnitsController[] allUnits = Object.FindObjectsByType<UnitsController>(FindObjectsSortMode.None);
+        foreach (var unit in allUnits)
+        {
+            if (unit != null)
+            {
+                selectedUnits.Add(unit);
+                unit.SetSelected(true);
+            }
+        }
+
+        if (UnitSelectionUIManager.Instance != null)
+            UnitSelectionUIManager.Instance.UpdateSelectionDisplay(selectedUnits);
+    }
+
+    public void SelectOnly(UnitsController targetUnit)
+    {
+        DeselectAll();
+
+        if (targetUnit != null)
+        {
+            selectedUnits.Add(targetUnit);
+            targetUnit.SetSelected(true);
+        }
+
+        if (UnitSelectionUIManager.Instance != null)
+        {
+            UnitSelectionUIManager.Instance.UpdateSelectionDisplay(selectedUnits);
+        }
     }
 
     private void OnGUI()

@@ -26,12 +26,16 @@ public class BuilderUnit : MonoBehaviour
     private ResourceVein targetVein;
     private UnitsController unitController;
     private float gatherTimer = 0f;
+    private Animator animator;
+    private static readonly int IsBuildingHash = Animator.StringToHash("IsBuilding");
+
 
     public bool IsSelected => unitController != null && unitController.isSelected;
 
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
+        animator = GetComponentInChildren<Animator>();
         unitController = GetComponent<UnitsController>();
     }
 
@@ -192,7 +196,14 @@ public class BuilderUnit : MonoBehaviour
         }
 
         // 3. ЛОГИКА СТРОИТЕЛЬСТВА ЗДАНИЙ
-        if (targetSite == null) return;
+        if (targetSite == null)
+        {
+            if (animator != null && animator.GetBool(IsBuildingHash))
+            {
+                animator.SetBool(IsBuildingHash, false);
+            }
+            return;
+        }
 
         if (targetSite.IsCompleted)
         {
@@ -207,6 +218,8 @@ public class BuilderUnit : MonoBehaviour
         {
             if (agent != null && agent.isOnNavMesh) agent.isStopped = true;
 
+            if (animator != null) animator.SetBool(IsBuildingHash, true);
+
             Vector3 lookDir = (targetSite.transform.position - transform.position).normalized;
             lookDir.y = 0f;
             if (lookDir != Vector3.zero)
@@ -218,6 +231,8 @@ public class BuilderUnit : MonoBehaviour
         }
         else
         {
+            if (animator != null) animator.SetBool(IsBuildingHash, false);
+
             if (agent != null && agent.isOnNavMesh)
             {
                 agent.isStopped = false;
@@ -259,6 +274,7 @@ public class BuilderUnit : MonoBehaviour
 
     public void CancelAllTasks()
     {
+        if (animator != null) animator.SetBool(IsBuildingHash, false);
         targetSite = null;
         targetCollider = null;
         targetVein = null;

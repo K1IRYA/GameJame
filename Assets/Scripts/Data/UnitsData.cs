@@ -5,7 +5,9 @@ public class UnitData : ScriptableObject
 {
     [Header("General Info")]
     public string unitName = "DWAAAARF";
+    public Sprite portraitIcon;
     [TextArea] public string description = "Добывает ресурсы и строит здания."; 
+
 
     [Header("Movement")]
     [Tooltip("Скорость передвижения юнита")]
@@ -25,6 +27,6 @@ public class UnitData : ScriptableObject
     public float attackCooldown = 1.2f;
 
     [Header("Economy / Production")]
-    public int goldCost = 50;
+    public int Cost = 50;
     public float buildTime = 5f;
 }
