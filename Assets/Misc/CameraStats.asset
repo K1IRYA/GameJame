@@ -13,13 +13,13 @@ MonoBehaviour:
   m_Name: CameraStats
   m_EditorClassIdentifier: 
   moveSpeed: 70
-  movementSmoothing: 10
+  movementSmoothing: 7
   enableEdgeScrolling: 1
   edgeBoundaryThickness: 20
   lockCursorInWindow: 0
-  rotationSpeed: 200
-  minPitch: 15
-  maxPitch: 80
+  rotationSpeed: 400
+  minPitch: 35
+  maxPitch: 70
   zoomSpeed: 20
-  minZoomDistance: 5
-  maxZoomDistance: 60
+  minZoomDistance: 30
+  maxZoomDistance: 67
