@@ -21,6 +21,7 @@ public class RTSController : MonoBehaviour
     private Vector3 mouseStartScreenPos;
     private Camera mainCamera;
     private readonly List<UnitsController> selectedUnits = new List<UnitsController>();
+    private BuildingTypeInfo selectedTownHall = null;
 
     private void Awake()
     {
@@ -84,6 +85,7 @@ public class RTSController : MonoBehaviour
     {
         Ray ray = mainCamera.ScreenPointToRay(mouseStartScreenPos);
 
+        // 1. Проверяем клик по юниту
         if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, unitLayer))
         {
             UnitsController unit = hit.collider.GetComponentInParent<UnitsController>();
@@ -98,11 +100,27 @@ public class RTSController : MonoBehaviour
             }
         }
 
-        if (!Input.GetKey(KeyCode.LeftShift))
+        if (Physics.Raycast(ray, out RaycastHit buildingHit, Mathf.Infinity))
         {
-            DeselectAll();
+            // Игнорируем превью (если в названии объекта есть preview/ghost или выключен коллайдер)
+            if (buildingHit.collider.name.ToLower().Contains("preview") || buildingHit.collider.name.ToLower().Contains("ghost"))
+                return;
+
+            // Игнорируем стройплощадку (недостроенный фундамент)
+            ConstructionSite site = buildingHit.collider.GetComponentInParent<ConstructionSite>();
+            if (site != null && !site.IsCompleted)
+                return;
+
+            BuildingTypeInfo building = buildingHit.collider.GetComponentInParent<BuildingTypeInfo>();
+            if (building != null && building.Type == BuildingTypeInfo.BuildingType.TownHall)
+            {
+                DeselectAll();
+                SelectTownHall(building);
+                return;
+            }
         }
     }
+
 
     private void PerformBoxSelection()
     {
@@ -272,15 +290,36 @@ public class RTSController : MonoBehaviour
         {
             if (selectedUnits[i] != null)
             {
-                selectedUnits[i].SetSelected(false); 
+                selectedUnits[i].SetSelected(false);
             }
         }
         selectedUnits.Clear();
 
-        // ДОБАВЛЕНО: сброс красной панели при снятии выделения
+        // Снимаем выделение с хаба и закрываем его меню
+        if (selectedTownHall != null)
+        {
+            QuickOutline outline = selectedTownHall.GetComponent<QuickOutline>();
+            if (outline != null) outline.enabled = false;
+            selectedTownHall = null;
+
+            if (TownHallUIManager.Instance != null)
+                TownHallUIManager.Instance.SetVisible(false, null);
+        }
+
+        // Сброс красной панели при снятии выделения
         if (UnitSelectionUIManager.Instance != null)
             UnitSelectionUIManager.Instance.UpdateSelectionDisplay(selectedUnits);
+    }
 
+    private void SelectTownHall(BuildingTypeInfo townHall)
+    {
+        selectedTownHall = townHall;
+
+        QuickOutline outline = selectedTownHall.GetComponent<QuickOutline>();
+        if (outline != null) outline.enabled = true;
+
+        if (TownHallUIManager.Instance != null)
+            TownHallUIManager.Instance.SetVisible(true, townHall);
     }
 
     // Выделить вообще всех союзников на карте

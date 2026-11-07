@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: EenemyRangeStats
   m_EditorClassIdentifier: 
   IsBuild: 0
-  unitName: Sniper
+  unitName: Riffler
   faction: 1
   portraitIcon: {fileID: 0}
   description: "\u0421\u0442\u0440\u0435\u043B\u044F\u0435\u0442 \u0432 \u0435\u0431\u043B\u043E"
@@ -23,6 +23,6 @@ MonoBehaviour:
   maxHealth: 40
   attackDamage: 2
   attackRange: 20
-  attackCooldown: 0.7
+  attackCooldown: 0.1
   Cost: 0
   buildTime: 0
