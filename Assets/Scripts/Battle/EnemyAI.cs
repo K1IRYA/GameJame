@@ -151,7 +151,8 @@ public class EnemyAI : MonoBehaviour
             // Prefer an open route over demolishing a wall that is merely nearby.
             if (wall && baseReachable) continue;
             if (!TryApproach(candidate, out Vector3 approach)) continue;
-            int priority = wall ? 0 : candidate == townHall ? 1 : candidate.GetComponent<BuilderUnit>() != null ? 2 : 3;
+            // Walls are fallback targets only while no primary target can be reached.
+            int priority = wall ? 4 : candidate == townHall ? 1 : candidate.GetComponent<BuilderUnit>() != null ? 2 : 3;
             float score = priority * 10000f + FlatDistance(transform.position, approach);
             // Keep the current target when alternatives are nearly equivalent.
             if (candidate == currentTarget) score -= 2f;
