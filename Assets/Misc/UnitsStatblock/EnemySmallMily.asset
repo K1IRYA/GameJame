@@ -18,11 +18,11 @@ MonoBehaviour:
   portraitIcon: {fileID: 0}
   description: "\u0412\u0440\u0430\u0433 \u043C\u0430\u043B\u044C\u043D\u044C\u043A\u0438\u0439
     \u0441\u0442\u0443\u043A\u0430\u0435\u0442 "
-  moveSpeed: 10
-  angularSpeed: 360
+  moveSpeed: 9
+  angularSpeed: 3600
   acceleration: 8
-  maxHealth: 100
-  attackDamage: 10
+  maxHealth: 170
+  attackDamage: 25
   attackRange: 1
   attackCooldown: 1.2
   Cost: 50

@@ -22,7 +22,7 @@ MonoBehaviour:
   moveSpeed: 8
   angularSpeed: 3600
   acceleration: 80
-  maxHealth: 250
+  maxHealth: 200
   attackDamage: 20
   attackRange: 2
   attackCooldown: 1.2

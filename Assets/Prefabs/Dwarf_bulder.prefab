@@ -6570,11 +6570,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e091cf93b3a5d8545b15550dd3804a39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  buildDistance: 1
+  buildDistance: 2
   buildSpeed: 20
   gatherDistance: 3.5
   gatherSpeed: 5
-  maxCarryCapacity: 50
+  maxCarryCapacity: 40
 --- !u!136 &8707586596067429786
 CapsuleCollider:
   m_ObjectHideFlags: 0
