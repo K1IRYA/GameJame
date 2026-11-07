@@ -230,9 +230,10 @@ public class BuilderUnit : MonoBehaviour
             return;
         }
 
+        // Если стройка завершилась — ищем следующий сегмент
         if (targetSite.IsCompleted)
         {
-            CancelAllTasks();
+            TryContinueBuildingChain();
             return;
         }
 
@@ -274,6 +275,12 @@ public class BuilderUnit : MonoBehaviour
             }
 
             targetSite.AddProgress(buildSpeed * Time.deltaTime);
+
+            // Проверяем, не достроился ли объект прямо в этом кадре
+            if (targetSite == null || targetSite.IsCompleted)
+            {
+                TryContinueBuildingChain();
+            }
         }
         else
         {
@@ -417,6 +424,47 @@ public class BuilderUnit : MonoBehaviour
                     minDst = dst;
                     closest = vein;
                 }
+            }
+        }
+
+        return closest;
+    }
+    private void TryContinueBuildingChain()
+    {
+        Vector3 searchCenter = targetSite != null ? targetSite.transform.position : transform.position;
+        bool isFence = targetSite != null &&
+            (targetSite.name.ToLower().Contains("zabor") || targetSite.name.ToLower().Contains("fence"));
+
+        ConstructionSite nextSite = FindNextConstructionSite(searchCenter, isFence, 35f);
+
+        CancelAllTasks();
+
+        if (nextSite != null)
+        {
+            AssignBuildTask(nextSite);
+        }
+    }
+    private ConstructionSite FindNextConstructionSite(Vector3 searchCenter, bool isFence, float maxRadius = 35f)
+    {
+        ConstructionSite[] allSites = Object.FindObjectsByType<ConstructionSite>(FindObjectsSortMode.None);
+        ConstructionSite closest = null;
+        float minDst = maxRadius;
+
+        foreach (var site in allSites)
+        {
+            if (site == null || site == targetSite || site.IsCompleted) continue;
+
+            string siteName = site.name.ToLower();
+            bool siteIsFence = siteName.Contains("zabor") || siteName.Contains("fence");
+
+            // Если строитель возводил забор, он продолжает строить только забор, не отвлекаясь на другие дома
+            if (isFence && !siteIsFence) continue;
+
+            float dst = Vector3.Distance(searchCenter, site.transform.position);
+            if (dst < minDst)
+            {
+                minDst = dst;
+                closest = site;
             }
         }
 

@@ -16,6 +16,8 @@ public class BuildingCostUI : MonoBehaviour
 
     [Header("Список требуемых ресурсов")]
     [SerializeField] private List<ResourceRequirement> costList = new List<ResourceRequirement>();
+    public List<ResourceRequirement> CostList => costList;
+    private readonly List<Text> costTextList = new List<Text>();
 
     [Header("Контейнер под кнопкой")]
     [Tooltip("Если оставить пустым, объект с HorizontalLayoutGroup создастся автоматически")]
@@ -28,7 +30,6 @@ public class BuildingCostUI : MonoBehaviour
     [SerializeField] private Color notAffordableColor = Color.red;
 
     private Button buildButton;
-    private readonly List<Text> costTextList = new List<Text>();
 
     private void Awake()
     {

@@ -32,6 +32,12 @@ public class RTSController : MonoBehaviour
     private const float doubleClickThreshold = 0.25f;
     private void Update()
     {
+
+        if (FencePlacer.Instance != null && FencePlacer.Instance.IsPlacing)
+        {
+            isDragging = false;
+            return;
+        }
         HandleSelection();
         HandleOrders();
 
@@ -377,6 +383,12 @@ public class RTSController : MonoBehaviour
 
     private void OnGUI()
     {
+        // Не рисуем рамку выделения на экране, если протягиваем забор
+        if (FencePlacer.Instance != null && FencePlacer.Instance.IsPlacing)
+        {
+            return;
+        }
+
         if (isDragging && Vector3.Distance(mouseStartScreenPos, Input.mousePosition) > 4f)
         {
             // Переводим координаты (в OnGUI начало координат слева-сверху, а у Input.mousePosition — слева-снизу)

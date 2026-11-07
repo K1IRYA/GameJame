@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 3025593275989374585}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5, y: 0, z: -5}
+  m_LocalPosition: {x: -5, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -56,7 +56,7 @@ Transform:
   m_GameObject: {fileID: 5847267496196671869}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5, y: 0, z: -5}
+  m_LocalPosition: {x: 5, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -160,7 +160,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 81cffcfd11e1ed24692daed151fed795, type: 3}
       propertyPath: m_Name
-      value: zabor_Previev
+      value: zabor_Site
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 81cffcfd11e1ed24692daed151fed795, type: 3}
       propertyPath: m_Layer
@@ -223,6 +223,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 81cffcfd11e1ed24692daed151fed795, type: 3}
       insertIndex: -1
       addedObject: {fileID: -8674725275894333199}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 81cffcfd11e1ed24692daed151fed795, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -5214716616203458567}
   m_SourcePrefab: {fileID: 100100000, guid: 81cffcfd11e1ed24692daed151fed795, type: 3}
 --- !u!1 &6037596728034977291 stripped
 GameObject:
@@ -292,6 +295,25 @@ NavMeshObstacle:
   m_CarveOnlyStationary: 1
   m_Center: {x: -0.023000002, y: 0.194, z: -5.4110003}
   m_TimeToStationary: 0.5
+--- !u!114 &-5214716616203458567
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6037596728034977291}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5dc49f07b7b4d4d44aa702b823003cc9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  completedBuildingPrefab: {fileID: 0}
+  randomVariants:
+  - {fileID: 6037596728034977291, guid: 2d4bf55ce25b9a9468bb95f76f88831c, type: 3}
+  - {fileID: 581703997371118351, guid: ed8768b88ed35d04a95d3d7a5d4b92d6, type: 3}
+  - {fileID: 6750219137053378949, guid: e6e487a9ebae63548a806ebdf25a037a, type: 3}
+  maxBuildProgress: 100
+  currentProgress: 0
 --- !u!4 &6377671639477632177 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 81cffcfd11e1ed24692daed151fed795, type: 3}

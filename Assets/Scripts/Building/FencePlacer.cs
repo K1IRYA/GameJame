@@ -1,40 +1,48 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class FencePlacer : MonoBehaviour
 {
     public static FencePlacer Instance { get; private set; }
 
-    [Header("Префабы вариаций стройплощадок забора")]
-    [Tooltip("Список префабов (zabor1, zabor2, zabor3) со скриптом ConstructionSite")]
-    [SerializeField] private List<GameObject> fenceVariants = new List<GameObject>();
+    [Header("Префаб стройплощадки забора")]
+    [SerializeField] private GameObject fenceSitePrefab;
 
-    [Header("Префаб призрака для предпросмотра (Preview)")]
+    [Header("Префаб призрака для предпросмотра")]
     [SerializeField] private GameObject previewPrefab;
 
-    [Header("Параметры сегмента")]
-    [Tooltip("Длина одной секции забора (расстояние между столбами)")]
-    [SerializeField] private float segmentLength = 2.5f;
+    [Header("Параметры секции")]
+    [Tooltip("Точная длина секции (расстояние между столбами вдоль линии забора)")]
+    [SerializeField] private float segmentLength = 6.0f;
 
-    [Tooltip("Дистанция примагничивания к соседним заборам")]
-    [SerializeField] private float snapDistance = 1.8f;
+    [Tooltip("Дистанция примагничивания к соседним точкам SnapPoint")]
+    [SerializeField] private float snapDistance = 2.0f;
+
+    [Tooltip("Дополнительный угол модели, если забор развернут боком")]
+    [SerializeField] private float modelAngleOffset = 0f;
 
     [Header("Слои")]
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private LayerMask fenceSnapLayer;
 
+
+    [Header("Связь со стоимостью на кнопке UI")]
+    [Tooltip("Ссылка на компонент BuildingCostUI на кнопке забора (если оставить пустым, найдет автоматически)")]
+    [SerializeField] private BuildingCostUI fenceCostUI;
+
     private bool isPlacing = false;
     private bool isDragging = false;
-    private float currentRotationY = 0f;
+    private float manualRotationAngle = 0f; // Угол при повороте на R (0, 90, 180, 270)
     private Vector3 dragStartPos;
-
+    public bool IsPlacing => isPlacing;
     private readonly List<GameObject> activePreviews = new List<GameObject>();
     private Camera mainCam;
 
     private void Awake()
     {
         if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+        else { Destroy(gameObject); return; }
 
         mainCam = Camera.main;
     }
@@ -43,41 +51,50 @@ public class FencePlacer : MonoBehaviour
     {
         if (!isPlacing) return;
 
-        // Поворот на 90 градусов по нажатию R
+        // Поворот на 90 градусов кнопкой R
         if (Input.GetKeyDown(KeyCode.R))
         {
-            currentRotationY = (currentRotationY + 90f) % 360f;
+            manualRotationAngle = (manualRotationAngle + 90f) % 360f;
         }
 
-        // Отмена по правой кнопке мыши или Escape
+        // Отмена по ПКМ или Escape
         if (Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.Escape))
         {
             CancelPlacement();
             return;
         }
 
-        Vector3 groundPos = GetMouseGroundPosition();
+        Vector3 groundPos;
+        bool hasHit = GetMouseGroundPosition(out groundPos);
 
-        // 1. Начало протяжки линии заборов (нажатие ЛКМ)
+        // Игнорируем нажатия, если курсор находится над интерфейсом (UI)
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            return;
+        }
+
+        if (!hasHit) return;
+
+        // 1. Старт протяжки (нажали ЛКМ)
         if (Input.GetMouseButtonDown(0))
         {
             isDragging = true;
             dragStartPos = GetSnappedPosition(groundPos);
         }
 
-        // 2. Протягивание (зажата ЛКМ)
+        // 2. Протягивание линии
         if (isDragging && Input.GetMouseButton(0))
         {
-            UpdateDragLinePreviews(dragStartPos, groundPos);
+            UpdateDragLine(dragStartPos, groundPos);
         }
-        // 3. Просто перемещение курсора без зажатия (одиночный призрак)
+        // 3. Свободное движение мыши (одиночный призрак)
         else if (!isDragging)
         {
             UpdateSinglePreview(groundPos);
         }
 
-        // 4. Завершение строительства (отпускание ЛКМ)
-        if (Input.GetMouseButtonUp(0) && isDragging)
+        // 4. Завершение стройки (отпустили ЛКМ)
+        if (isDragging && Input.GetMouseButtonUp(0))
         {
             BuildFenceChain(dragStartPos, groundPos);
             isDragging = false;
@@ -85,18 +102,12 @@ public class FencePlacer : MonoBehaviour
         }
     }
 
-    // Вызывается из UI-кнопки строительства забора
     public void StartPlacingFence()
     {
-        if (fenceVariants.Count == 0)
-        {
-            Debug.LogError("[FencePlacer] Список fenceVariants пуст!");
-            return;
-        }
-
         isPlacing = true;
         isDragging = false;
-        currentRotationY = 0f;
+        manualRotationAngle = 0f;
+        ClearPreviews();
     }
 
     public void CancelPlacement()
@@ -106,17 +117,21 @@ public class FencePlacer : MonoBehaviour
         ClearPreviews();
     }
 
-    private Vector3 GetMouseGroundPosition()
+    private bool GetMouseGroundPosition(out Vector3 position)
     {
+        position = Vector3.zero;
+        if (mainCam == null) mainCam = Camera.main;
+        if (mainCam == null) return false;
+
         Ray ray = mainCam.ScreenPointToRay(Input.mousePosition);
-        if (Physics.Raycast(ray, out RaycastHit hit, 500f, groundLayer))
+        if (Physics.Raycast(ray, out RaycastHit hit, 1000f, groundLayer))
         {
-            return hit.point;
+            position = hit.point;
+            return true;
         }
-        return Vector3.zero;
+        return false;
     }
 
-    // Ищет ближайший край уже построенного забора для примагничивания
     private Vector3 GetSnappedPosition(Vector3 originalPos)
     {
         Collider[] nearbyColliders = Physics.OverlapSphere(originalPos, snapDistance, fenceSnapLayer);
@@ -125,7 +140,6 @@ public class FencePlacer : MonoBehaviour
 
         foreach (var col in nearbyColliders)
         {
-            // Перебираем все дочерние точки забора (SnapPoint_L, SnapPoint_R)
             Transform[] allChildren = col.GetComponentsInChildren<Transform>();
             foreach (var child in allChildren)
             {
@@ -144,76 +158,157 @@ public class FencePlacer : MonoBehaviour
         return bestSnapPos;
     }
 
-    private void UpdateSinglePreview(Vector3 currentMousePos)
+    private void UpdateSinglePreview(Vector3 mousePos)
     {
-        EnsurePreviewCount(1);
-        Vector3 snappedPos = GetSnappedPosition(currentMousePos);
+        EnsurePreviewPool(1);
+        Vector3 snappedPos = GetSnappedPosition(mousePos);
 
-        activePreviews[0].transform.position = snappedPos;
-        activePreviews[0].transform.rotation = Quaternion.Euler(0f, currentRotationY, 0f);
-        activePreviews[0].SetActive(true);
+        GameObject p = activePreviews[0];
+        p.transform.position = snappedPos;
+        // Сохраняем X = 89.98f, чтобы модель стояла вертикально
+        p.transform.rotation = Quaternion.Euler(89.98f, manualRotationAngle + modelAngleOffset, 0f);
+        p.SetActive(true);
     }
 
-    private void UpdateDragLinePreviews(Vector3 start, Vector3 current)
+    private void UpdateDragLine(Vector3 start, Vector3 current)
     {
-        Vector3 direction = current - start;
-        direction.y = 0f;
-        float totalDist = direction.magnitude;
+        Vector3 lineVec = current - start;
+        lineVec.y = 0f;
+        float totalDist = lineVec.magnitude;
 
-        if (totalDist < 0.1f)
+        if (totalDist < 0.2f)
         {
             UpdateSinglePreview(start);
             return;
         }
 
-        // Вычисляем количество секций в цепи
-        int count = Mathf.Max(1, Mathf.RoundToInt(totalDist / segmentLength));
-        EnsurePreviewCount(count);
+        Vector3 dir = lineVec.normalized;
+        Quaternion targetRot = Quaternion.LookRotation(dir, Vector3.up) * Quaternion.Euler(89.98f, modelAngleOffset, 0f);
 
-        Vector3 stepVector = direction.normalized * segmentLength;
-        Quaternion rot = Quaternion.LookRotation(direction.normalized, Vector3.up);
+        int desiredCount = Mathf.Max(1, Mathf.RoundToInt(totalDist / segmentLength));
 
-        for (int i = 0; i < count; i++)
+        // Ограничиваем число секций доступными ресурсами
+        int affordableCount = GetMaxAffordableSegments(desiredCount);
+        int finalCount = Mathf.Min(desiredCount, affordableCount);
+
+        EnsurePreviewPool(finalCount);
+
+        Vector3 step = dir * segmentLength;
+
+        for (int i = 0; i < finalCount; i++)
         {
-            Vector3 pos = start + stepVector * i;
-            activePreviews[i].transform.position = pos;
-            activePreviews[i].transform.rotation = rot;
-            activePreviews[i].SetActive(true);
+            Vector3 pos = start + step * i;
+            GameObject p = activePreviews[i];
+            p.transform.position = pos;
+            p.transform.rotation = targetRot;
+            p.SetActive(true);
+        }
+
+        // Отключаем лишние превью, если на них не хватило ресурсов
+        for (int i = finalCount; i < activePreviews.Count; i++)
+        {
+            activePreviews[i].SetActive(false);
         }
     }
 
     private void BuildFenceChain(Vector3 start, Vector3 end)
     {
-        Vector3 direction = end - start;
-        direction.y = 0f;
-        float totalDist = direction.magnitude;
+        Vector3 lineVec = end - start;
+        lineVec.y = 0f;
+        float totalDist = lineVec.magnitude;
 
-        int count = totalDist < segmentLength ? 1 : Mathf.Max(1, Mathf.RoundToInt(totalDist / segmentLength));
-        Vector3 stepVector = totalDist < 0.1f ? Vector3.zero : direction.normalized * segmentLength;
-        Quaternion rot = totalDist < 0.1f ? Quaternion.Euler(0f, currentRotationY, 0f) : Quaternion.LookRotation(direction.normalized, Vector3.up);
+        int desiredCount = totalDist < segmentLength ? 1 : Mathf.Max(1, Mathf.RoundToInt(totalDist / segmentLength));
+        int affordableCount = GetMaxAffordableSegments(desiredCount);
+        int finalCount = Mathf.Min(desiredCount, affordableCount);
 
-        for (int i = 0; i < count; i++)
+        if (finalCount <= 0)
         {
-            Vector3 spawnPos = start + stepVector * i;
+            Debug.LogWarning("[FencePlacer] Недостаточно ресурсов для постройки даже одной секции забора!");
+            return;
+        }
 
-            // Выбираем случайную вариацию (zabor1, zabor2, zabor3)
-            GameObject chosenPrefab = fenceVariants[Random.Range(0, fenceVariants.Count)];
+        // Списываем суммарную стоимость через ResourceManager
+        if (ResourceManager.Instance != null && fenceCostUI != null)
+        {
+            int totalScrap = 0;
+            int totalIron = 0;
+            int totalWood = 0;
 
-            if (chosenPrefab != null)
+            foreach (var req in fenceCostUI.CostList)
             {
-                Instantiate(chosenPrefab, spawnPos, rot);
+                switch (req.resourceType)
+                {
+                    case ResourceType.ScrapMetal: totalScrap += req.amount * finalCount; break;
+                    case ResourceType.IronOre: totalIron += req.amount * finalCount; break;
+                    case ResourceType.Wood: totalWood += req.amount * finalCount; break;
+                }
             }
+
+            bool success = ResourceManager.Instance.TrySpendResources(totalScrap, totalIron, totalWood);
+            if (!success)
+            {
+                Debug.LogWarning("[FencePlacer] Ошибка списания ресурсов!");
+                return;
+            }
+        }
+
+        Vector3 dir = totalDist < 0.2f ? Vector3.forward : lineVec.normalized;
+        Quaternion targetRot = totalDist < 0.2f
+            ? Quaternion.Euler(89.98f, manualRotationAngle + modelAngleOffset, 0f)
+            : Quaternion.LookRotation(dir, Vector3.up) * Quaternion.Euler(89.98f, modelAngleOffset, 0f);
+
+        Vector3 step = dir * segmentLength;
+
+        if (fenceSitePrefab == null)
+        {
+            Debug.LogError("[FencePlacer] Не назначен fenceSitePrefab!");
+            return;
+        }
+
+        for (int i = 0; i < finalCount; i++)
+        {
+            Vector3 spawnPos = start + step * i;
+            Instantiate(fenceSitePrefab, spawnPos, targetRot);
         }
     }
 
-    private void EnsurePreviewCount(int requiredCount)
+    private int GetMaxAffordableSegments(int targetCount)
+    {
+        if (ResourceManager.Instance == null || fenceCostUI == null) return targetCount;
+
+        int maxAffordable = int.MaxValue;
+
+        foreach (var req in fenceCostUI.CostList)
+        {
+            if (req.amount <= 0) continue;
+            int playerStock = ResourceManager.Instance.GetResourceAmount(req.resourceType);
+            int canAffordThis = playerStock / req.amount;
+            if (canAffordThis < maxAffordable)
+            {
+                maxAffordable = canAffordThis;
+            }
+        }
+
+        return Mathf.Max(0, maxAffordable);
+    }
+
+    private void EnsurePreviewPool(int requiredCount)
     {
         while (activePreviews.Count < requiredCount)
         {
-            GameObject p = Instantiate(previewPrefab != null ? previewPrefab : fenceVariants[0]);
+            GameObject prefabToUse = previewPrefab != null ? previewPrefab : fenceSitePrefab;
+            GameObject p = Instantiate(prefabToUse);
 
-            // Отключаем коллайдеры у призраков, чтобы луч мыши не упирался в них
-            foreach (var col in p.GetComponentsInChildren<Collider>()) col.enabled = false;
+            // Отключаем скрипты BuildingGhost, чтобы они не перезаписывали transform призрака
+            MonoBehaviour[] scripts = p.GetComponentsInChildren<MonoBehaviour>();
+            foreach (var s in scripts)
+            {
+                if (s.GetType().Name == "BuildingGhost") s.enabled = false;
+            }
+
+            // Отключаем коллайдеры у превью
+            Collider[] colliders = p.GetComponentsInChildren<Collider>();
+            foreach (var c in colliders) c.enabled = false;
 
             activePreviews.Add(p);
         }
