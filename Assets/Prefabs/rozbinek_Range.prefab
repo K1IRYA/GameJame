@@ -941,6 +941,7 @@ GameObject:
   - component: {fileID: 5504088431022895133}
   - component: {fileID: -4984932046833181071}
   - component: {fileID: -4976361619852717195}
+  - component: {fileID: 3537085581579981768}
   m_Layer: 10
   m_Name: rozbinek_Range
   m_TagString: Untagged
@@ -1006,7 +1007,7 @@ NavMeshAgent:
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 2
-  m_BaseOffset: 0
+  m_BaseOffset: 1.2
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
 --- !u!114 &5504088431022895133
@@ -1033,11 +1034,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97462b51c95dfc1468829059fd146ffa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyData: {fileID: 11400000, guid: d25fb7a54b2794840a08729e0302f3b7, type: 2}
-  marchDetectionDistance: 4
+  enemyData: {fileID: 11400000, guid: e52b049995ac6f44dbfc43f32393dbe7, type: 2}
+  marchDetectionDistance: 80
   targetLayers:
     serializedVersion: 2
     m_Bits: 0
+  decisionInterval: 0.4
 --- !u!114 &-4976361619852717195
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1050,11 +1052,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9df67376609aed04bb0e209e0eda1295, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  projectilePrefab: {fileID: 1031518359208222421, guid: c8d8decb3bcb8a4419b3da9916503425, type: 3}
+  projectilePrefab: {fileID: 3009568670286859414, guid: 8f3743e66ce7c3248847fdf4a72cd687, type: 3}
   firePoint: {fileID: 2530973078641907668}
   targetLayers:
     serializedVersion: 2
     m_Bits: 576
+--- !u!136 &3537085581579981768
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6741989393860648622}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.5
+  m_Height: 2.6472611
+  m_Direction: 1
+  m_Center: {x: 0, y: -0.072669506, z: 0}
 --- !u!1 &6783875577817046667
 GameObject:
   m_ObjectHideFlags: 0
