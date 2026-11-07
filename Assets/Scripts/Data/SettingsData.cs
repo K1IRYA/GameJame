@@ -6,7 +6,7 @@ using UnityEngine;
 public class GameSettingsData : ScriptableObject
 {
     [Header("Audio")]
-    [Range(0f, 1f)] public float masterVolume = 1f;
+    [Range(0f, 1f)] public float masterVolume = 0.5f;
 
     [Header("Graphics")]
     public int qualityLevel = 2; // По умолчанию среднее/высокое
