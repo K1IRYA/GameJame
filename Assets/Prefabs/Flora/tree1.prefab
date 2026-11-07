@@ -69,6 +69,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 2cb5e3b0a76e8764795c411f2aef8919, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3893572164934021903}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 2cb5e3b0a76e8764795c411f2aef8919, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -6464849800032084523}
   m_SourcePrefab: {fileID: 100100000, guid: 2cb5e3b0a76e8764795c411f2aef8919, type: 3}
 --- !u!1 &7687689582483442188 stripped
 GameObject:
@@ -131,3 +134,33 @@ NavMeshObstacle:
   m_CarveOnlyStationary: 1
   m_Center: {x: -0.11000001, y: 5.0360003, z: -0.089}
   m_TimeToStationary: 0.5
+--- !u!205 &-6464849800032084523
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7687689582483442188}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0, y: 0, z: 0}
+  m_Size: 1
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.021715827
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 8192281374947421145}
+  - screenRelativeHeight: 0
+    fadeTransitionWidth: 0
+    renderers: []
+  - screenRelativeHeight: 0
+    fadeTransitionWidth: 0
+    renderers: []
+  m_Enabled: 1
+--- !u!23 &8192281374947421145 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7511558181221131132, guid: 2cb5e3b0a76e8764795c411f2aef8919, type: 3}
+  m_PrefabInstance: {fileID: 7381752871398192989}
+  m_PrefabAsset: {fileID: 0}
