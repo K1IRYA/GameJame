@@ -48,7 +48,7 @@ public class ResourceManager : MonoBehaviour
 
     public bool TrySpendResources(int scrapCost, int ironCost, int woodCost)
     {
-        if (scrapMetal >= scrapCost && ironOre >= ironCost)
+        if (scrapMetal >= scrapCost && ironOre >= ironCost && wood >= woodCost)
         {
             scrapMetal -= scrapCost;
             ironOre -= ironCost;
@@ -58,6 +58,16 @@ public class ResourceManager : MonoBehaviour
         }
 
         return false;
+    }
+    public int GetResourceAmount(ResourceType type)
+    {
+        switch (type)
+        {
+            case ResourceType.ScrapMetal: return scrapMetal;
+            case ResourceType.IronOre: return ironOre;
+            case ResourceType.Wood: return wood;
+            default: return 0;
+        }
     }
 
     private void UpdateResourceUI()
