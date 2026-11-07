@@ -323,7 +323,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9df67376609aed04bb0e209e0eda1295, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  projectilePrefab: {fileID: 3009568670286859414, guid: 8f3743e66ce7c3248847fdf4a72cd687, type: 3}
+  projectilePrefab: {fileID: 3009568670286859414, guid: bb44447486c606d4895dd1cd460153b9, type: 3}
   firePoint: {fileID: 0}
   targetLayers:
     serializedVersion: 2

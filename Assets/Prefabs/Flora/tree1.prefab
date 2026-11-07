@@ -108,8 +108,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   resourceType: 2
   isInfinite: 0
-  maxResources: 50
-  currentResources: 50
+  maxResources: 40
+  currentResources: 40
   stumpPrefab: {fileID: 4271305293291318952, guid: 904eed67ae1de32458b9182c3ab9e470, type: 3}
 --- !u!136 &6491668605109461007
 CapsuleCollider:

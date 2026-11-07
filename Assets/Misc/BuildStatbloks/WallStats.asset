@@ -22,7 +22,7 @@ MonoBehaviour:
   moveSpeed: 0
   angularSpeed: 0
   acceleration: 0
-  maxHealth: 50
+  maxHealth: 100
   attackDamage: 0
   attackRange: 0
   attackCooldown: 0
