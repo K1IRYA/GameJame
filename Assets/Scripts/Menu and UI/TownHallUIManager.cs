@@ -62,8 +62,18 @@ public class TownHallUIManager : MonoBehaviour
 
         if (currentSelectedTownHall != null)
         {
-            // Ищем дочерний объект SpawnPoint внутри построенной базы
-            Transform internalSpawnPoint = currentSelectedTownHall.transform.Find("SpawnPoint");
+            Transform internalSpawnPoint = null;
+
+            // Ищем дочерний объект на любой глубине без учёта регистра
+            foreach (Transform child in currentSelectedTownHall.GetComponentsInChildren<Transform>(true))
+            {
+                if (child.name.ToLower() == "spawnpoint")
+                {
+                    internalSpawnPoint = child;
+                    break;
+                }
+            }
+
             if (internalSpawnPoint != null)
             {
                 spawnPos = internalSpawnPoint.position;
@@ -71,7 +81,6 @@ public class TownHallUIManager : MonoBehaviour
             }
             else
             {
-                // Резерв: вычисляем позицию перед фасадом здания
                 spawnPos = currentSelectedTownHall.transform.position + currentSelectedTownHall.transform.forward * 8f;
                 spawnRot = currentSelectedTownHall.transform.rotation;
             }

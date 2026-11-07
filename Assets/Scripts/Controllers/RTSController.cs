@@ -119,6 +119,10 @@ public class RTSController : MonoBehaviour
                 return;
             }
         }
+        if (!Input.GetKey(KeyCode.LeftShift))
+        {
+            DeselectAll();
+        }
     }
 
 
@@ -284,6 +288,19 @@ public class RTSController : MonoBehaviour
         }
     }
 
+    public void DeselectTownHall()
+    {
+        if (selectedTownHall != null)
+        {
+            QuickOutline outline = selectedTownHall.GetComponent<QuickOutline>();
+            if (outline != null) outline.enabled = false;
+            selectedTownHall = null;
+        }
+
+        if (TownHallUIManager.Instance != null)
+            TownHallUIManager.Instance.SetVisible(false, null);
+    }
+
     private void DeselectAll()
     {
         for (int i = 0; i < selectedUnits.Count; i++)
@@ -295,16 +312,8 @@ public class RTSController : MonoBehaviour
         }
         selectedUnits.Clear();
 
-        // Снимаем выделение с хаба и закрываем его меню
-        if (selectedTownHall != null)
-        {
-            QuickOutline outline = selectedTownHall.GetComponent<QuickOutline>();
-            if (outline != null) outline.enabled = false;
-            selectedTownHall = null;
-
-            if (TownHallUIManager.Instance != null)
-                TownHallUIManager.Instance.SetVisible(false, null);
-        }
+        // Снимаем выделение с хаба и закрываем его меню через общий метод
+        DeselectTownHall();
 
         // Сброс красной панели при снятии выделения
         if (UnitSelectionUIManager.Instance != null)
@@ -314,6 +323,16 @@ public class RTSController : MonoBehaviour
     private void SelectTownHall(BuildingTypeInfo townHall)
     {
         selectedTownHall = townHall;
+
+        // Закрываем панель кнопки BUILD, если на ней висит скрипт MenuToggle
+        MenuToggle[] toggles = Object.FindObjectsByType<MenuToggle>(FindObjectsSortMode.None);
+        foreach (var t in toggles)
+        {
+            if (t != null && t.targetPanel != null && t.targetPanel.activeSelf)
+            {
+                t.targetPanel.SetActive(false);
+            }
+        }
 
         QuickOutline outline = selectedTownHall.GetComponent<QuickOutline>();
         if (outline != null) outline.enabled = true;
