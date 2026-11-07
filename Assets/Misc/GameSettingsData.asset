@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: GameSettingsData
   m_EditorClassIdentifier: 
   masterVolume: 1
-  qualityLevel: 2
+  qualityLevel: 5
   isFullscreen: 1

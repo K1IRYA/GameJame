@@ -16,6 +16,7 @@ public class ConstructionContextMenu : MonoBehaviour
     private ResourceVein currentVein;
     private Vector3 targetGroundPoint;
     private bool isGroundContextMenu = false;
+    private int openedFrame = -1;
 
     private void Awake()
     {
@@ -42,6 +43,36 @@ public class ConstructionContextMenu : MonoBehaviour
         if (menuPanel != null)
         {
             menuPanel.SetActive(false);
+        }
+    }
+
+    private void Update()
+    {
+        // Проверяем только когда панель активна и не в кадр ее открытия
+        if (menuPanel != null && menuPanel.activeSelf && Time.frameCount > openedFrame)
+        {
+            // ЛКМ (0) или ПКМ (1)
+            if (Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
+            {
+                RectTransform panelRect = menuPanel.GetComponent<RectTransform>();
+                if (panelRect != null)
+                {
+                    Canvas parentCanvas = menuPanel.GetComponentInParent<Canvas>();
+                    Camera eventCamera = (parentCanvas != null && parentCanvas.renderMode != RenderMode.ScreenSpaceOverlay)
+                        ? parentCanvas.worldCamera
+                        : null;
+
+                    // Если клик произошел за пределами панели меню — закрываем
+                    if (!RectTransformUtility.RectangleContainsScreenPoint(panelRect, Input.mousePosition, eventCamera))
+                    {
+                        CloseMenu();
+                    }
+                }
+                else
+                {
+                    CloseMenu();
+                }
+            }
         }
     }
 
@@ -91,6 +122,7 @@ public class ConstructionContextMenu : MonoBehaviour
     {
         if (menuPanel != null)
         {
+            openedFrame = Time.frameCount;
             menuPanel.SetActive(true);
             RectTransform panelRect = menuPanel.GetComponent<RectTransform>();
             Canvas parentCanvas = menuPanel.GetComponentInParent<Canvas>();
