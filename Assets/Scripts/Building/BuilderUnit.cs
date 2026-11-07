@@ -39,6 +39,24 @@ public class BuilderUnit : MonoBehaviour
         unitController = GetComponent<UnitsController>();
     }
 
+    private void Start()
+    {
+        // Учитываем нового строителя в глобальном менеджере населения
+        if (PopulationManager.Instance != null)
+        {
+            PopulationManager.Instance.RegisterBuilder();
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // Освобождаем слот населения при гибели строителя
+        if (gameObject.scene.isLoaded && PopulationManager.Instance != null)
+        {
+            PopulationManager.Instance.UnregisterBuilder();
+        }
+    }
+
     private void Update()
     {
         // 1. ЛОГИКА ДОБЫЧИ РЕСУРСОВ

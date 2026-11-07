@@ -46,22 +46,17 @@ public class WaveSpawner : MonoBehaviour
 
     private void Start()
     {
-        // Ищем ратушу на сцене (объект с тегом или специальным скриптом)
-        // Предполагаем, что ратуша имеет скрипт ResourceDropOff или имя "base"
-        var dropOff = Object.FindAnyObjectByType<ResourceDropOff>();
-        if (dropOff != null)
-        {
-            StartTimer(timeBeforeFirstWave);
-            activeTownHall = dropOff.transform;
-        }
-        else
-        {
-            Debug.LogWarning("[WaveSpawner] Ратуша не найдена при старте. Ожидание появления ратуши...");
-        }
+        CheckTownHall();
     }
 
     private void Update()
     {
+        // Если при старте базы еще не было, проверяем регистратор до первого обнаружения
+        if (!isTimerRunning && !isWaveActive && activeTownHall == null)
+        {
+            CheckTownHall();
+        }
+
         if (isTimerRunning)
         {
             waveTimer -= Time.deltaTime;
@@ -88,6 +83,16 @@ public class WaveSpawner : MonoBehaviour
             {
                 EndWave();
             }
+        }
+    }
+
+    private void CheckTownHall()
+    {
+        if (TownHallRegister.IsBaseRegistered && TownHallRegister.BaseHealth != null)
+        {
+            activeTownHall = TownHallRegister.BaseHealth.transform;
+            StartTimer(timeBeforeFirstWave);
+            Debug.Log("[WaveSpawner] Ратуша успешно обнаружена! Запущен таймер волны.");
         }
     }
 

@@ -98,6 +98,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 4879d989f9b95a34c83891eba1c41ffb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 9032530021716413613}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 4879d989f9b95a34c83891eba1c41ffb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8691654888648222970}
   m_SourcePrefab: {fileID: 100100000, guid: 4879d989f9b95a34c83891eba1c41ffb, type: 3}
 --- !u!1 &4636786230435966173 stripped
 GameObject:
@@ -192,3 +195,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 582bb6f6192954046b179fe7d3ed62bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &8691654888648222970
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4636786230435966173}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87d394a7496c6554492d678f7402eb57, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pauseMenuPanel: {fileID: 0}
+  titleText: {fileID: 0}
+  continueButton: {fileID: 0}
+  settingsButton: {fileID: 0}
+  mainMenuButton: {fileID: 0}

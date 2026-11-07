@@ -6,11 +6,14 @@ public class pause : MonoBehaviour
     public GameObject pausemenu;
 
     public static bool isPaused;
+    public static bool isGameOver; // Флаг поражения, доступный из любого скрипта
 
     void Start()
     {
         isPaused = false;
+        isGameOver = false; // Сбрасываем при перезапуске/старте сцены
         Time.timeScale = 1f;
+
         if (pausemenu != null)
         {
             pausemenu.SetActive(false);
@@ -21,6 +24,13 @@ public class pause : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
+            // Если база уничтожена, Escape больше не закрывает меню, а сразу выходит в главное меню
+            if (isGameOver)
+            {
+                gotomain();
+                return;
+            }
+
             if (isPaused)
             {
                 resumegame();
@@ -42,13 +52,15 @@ public class pause : MonoBehaviour
         Time.timeScale = 0f;
         isPaused = true;
 
-        // Освобождаем курсор для кликов по кнопкам меню
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
 
     public void resumegame()
     {
+        // Дополнительная защита: если игра окончена, метод отмены паузы блокируется
+        if (isGameOver) return;
+
         if (pausemenu != null)
         {
             pausemenu.SetActive(false);
@@ -57,7 +69,6 @@ public class pause : MonoBehaviour
         Time.timeScale = 1f;
         isPaused = false;
 
-        // Возвращаем курсор в режим игры
         Cursor.lockState = CursorLockMode.Confined;
     }
 
@@ -65,6 +76,7 @@ public class pause : MonoBehaviour
     {
         Time.timeScale = 1f;
         isPaused = false;
+        isGameOver = false;
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         SceneManager.LoadScene("MainMenu");
@@ -75,11 +87,11 @@ public class pause : MonoBehaviour
         Debug.Log("Выход из игры...");
         Time.timeScale = 1f;
         isPaused = false;
+        isGameOver = false;
 
         Application.Quit();
 
 #if UNITY_EDITOR
-        // Чтобы кнопка выхода работала и при тестировании в редакторе Unity:
         UnityEditor.EditorApplication.isPlaying = false;
 #endif
     }

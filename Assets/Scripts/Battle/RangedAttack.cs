@@ -34,6 +34,8 @@ public class RangedAttack : MonoBehaviour
     private void Update()
     {
         if (unitData == null) return;
+        // Mobile enemies fire only when EnemyAI has checked range and line of sight.
+        if (GetComponent<EnemyAI>() != null) return;
 
         // Если это здание (башня), проверяем дистанцию и здоровье текущей цели
         if (unitData.IsBuild)

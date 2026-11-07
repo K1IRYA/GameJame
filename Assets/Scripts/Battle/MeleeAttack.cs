@@ -123,6 +123,7 @@ public class MeleeAttack : MonoBehaviour
     public void StopAttacking()
     {
         targetEnemy = null;
+        targetEnemyHealth = null;
         if (agent != null && agent.isOnNavMesh && agent.isStopped)
         {
             agent.isStopped = false;
@@ -141,4 +142,3 @@ public class MeleeAttack : MonoBehaviour
         }
     }
 }
-
