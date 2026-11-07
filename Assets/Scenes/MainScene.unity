@@ -950100,6 +950100,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 335586861817332764, guid: b1dca3163a3316e40912cb52ea3cacc8, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1843589632}
+    - target: {fileID: 335586861817332764, guid: b1dca3163a3316e40912cb52ea3cacc8, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: gotosettings
+      objectReference: {fileID: 0}
+    - target: {fileID: 335586861817332764, guid: b1dca3163a3316e40912cb52ea3cacc8, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: pause, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 335586861817332764, guid: b1dca3163a3316e40912cb52ea3cacc8, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     - target: {fileID: 639641584104829928, guid: b1dca3163a3316e40912cb52ea3cacc8, type: 3}
       propertyPath: m_SizeDelta.x
       value: 0
@@ -950300,6 +950316,17 @@ PrefabInstance:
       addedObject: {fileID: 2100082954}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b1dca3163a3316e40912cb52ea3cacc8, type: 3}
+--- !u!114 &1843589632 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 981199399191973600, guid: b1dca3163a3316e40912cb52ea3cacc8, type: 3}
+  m_PrefabInstance: {fileID: 1843589631}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ae1e53cb6f76d94f9d7ff0cc0bdaa84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &1843626880 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5291035422269394694, guid: d96b51d50d7428f4abe8caf539173f64, type: 3}
@@ -1104328,6 +1104355,7 @@ MonoBehaviour:
   borderColor: {r: 0.8, g: 1, b: 0.8, a: 1}
   borderThickness: 2
   moveMarkerPrefab: {fileID: 7099779022388364720, guid: 2a704354f70259741ad93ecb7b4ad7ba, type: 3}
+  attackCursor: {fileID: 0}
 --- !u!4 &2135570993
 Transform:
   m_ObjectHideFlags: 0
