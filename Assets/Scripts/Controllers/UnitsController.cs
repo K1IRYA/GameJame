@@ -28,13 +28,19 @@ public class UnitsController : MonoBehaviour
     private Animator animator;
     private GameObject currentMarker;
     private bool isMovingToTarget = false;
-
+    private bool isAttackMoving = false;
+    private Vector3 attackMoveDestination;
+    private MeleeAttack meleeAttack;
+    private float scanTimer = 0f;
+    private const float ScanInterval = 0.25f;
+    [SerializeField] private float aggroScanRadius = 10f;
     private static readonly int SpeedHash = Animator.StringToHash("Speed");
 
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponentInChildren<Animator>();
+        meleeAttack = GetComponent<MeleeAttack>();
 
         ApplyUnitStats();
         SetSelected(false);
@@ -60,12 +66,19 @@ public class UnitsController : MonoBehaviour
     {
         UpdateAnimations();
         CheckDestinationReached();
+        UpdateAttackMove();
     }
 
 
 
     public void MoveTo(Vector3 destination)
     {
+        isAttackMoving = false;
+        if (meleeAttack != null)
+        {
+            meleeAttack.StopAttacking();
+        }
+
         if (agent != null && agent.isOnNavMesh)
         {
             // Снимаем возможную паузу агента
@@ -146,4 +159,107 @@ public class UnitsController : MonoBehaviour
 
     // Свойства для внешнего доступа
     public UnitData Data => unitData;
+
+    public void AttackMove(Vector3 destination)
+    {
+        BuilderUnit builder = GetComponent<BuilderUnit>();
+        if (builder != null)
+        {
+            builder.CancelBuildTask();
+        }
+
+        if (meleeAttack != null)
+        {
+            meleeAttack.StopAttacking();
+        }
+
+        isAttackMoving = true;
+        attackMoveDestination = destination;
+        scanTimer = 0f;
+
+        if (agent != null && agent.isOnNavMesh)
+        {
+            agent.isStopped = false;
+            agent.SetDestination(destination);
+            isMovingToTarget = true;
+
+            if (currentMarker == null && moveMarkerPrefab != null)
+            {
+                currentMarker = Instantiate(moveMarkerPrefab);
+            }
+
+            if (currentMarker != null)
+            {
+                currentMarker.transform.position = destination + new Vector3(0f, 0.05f, 0f);
+                currentMarker.SetActive(true);
+            }
+        }
+    }
+    private void UpdateAttackMove()
+    {
+        if (!isAttackMoving) return;
+
+        // Если в данный момент юнит уже занят атакой живого врага
+        if (meleeAttack != null && meleeAttack.HasTarget)
+        {
+            return;
+        }
+
+        // Сканируем пространство вокруг с интервалом
+        scanTimer += Time.deltaTime;
+        if (scanTimer >= ScanInterval)
+        {
+            scanTimer = 0f;
+            Health nearestEnemy = FindNearestEnemy(aggroScanRadius);
+
+            if (nearestEnemy != null && meleeAttack != null)
+            {
+                // Враг найден — переключаемся на атаку
+                meleeAttack.AttackTarget(nearestEnemy);
+                return;
+            }
+        }
+
+        // Если врагов поблизости нет, продолжаем путь к изначальной точке A-клика
+        if (agent != null && agent.isOnNavMesh && !agent.pathPending)
+        {
+            if (agent.destination != attackMoveDestination)
+            {
+                agent.isStopped = false;
+                agent.SetDestination(attackMoveDestination);
+                isMovingToTarget = true;
+            }
+
+            if (agent.remainingDistance <= stopMarkerDistance)
+            {
+                isAttackMoving = false;
+                isMovingToTarget = false;
+                if (currentMarker != null) currentMarker.SetActive(false);
+            }
+        }
+    }
+    private Health FindNearestEnemy(float radius)
+    {
+        Collider[] hits = Physics.OverlapSphere(transform.position, radius);
+        Health bestEnemy = null;
+        float minDistance = float.MaxValue;
+
+        foreach (var hit in hits)
+        {
+            Health hp = hit.GetComponentInParent<Health>();
+            if (hp == null || hp.IsDead) continue;
+
+            EnemyAI enemyAI = hp.GetComponent<EnemyAI>();
+            if (enemyAI == null) continue;
+
+            float dist = Vector3.Distance(transform.position, hp.transform.position);
+            if (dist < minDistance)
+            {
+                minDistance = dist;
+                bestEnemy = hp;
+            }
+        }
+
+        return bestEnemy;
+    }
 }

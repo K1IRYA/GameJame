@@ -17,6 +17,10 @@ public class RTSController : MonoBehaviour
     [Tooltip("Префаб эффекта или точки, который будет появляться при клике ПКМ")]
     [SerializeField] private GameObject moveMarkerPrefab;
 
+    [Header("Attack-Move Settings")]
+    [SerializeField] private Texture2D attackCursor; // Необязательно: кастомная иконка прицела/курсора
+    private bool isAttackMoveMode = false;
+
     private bool isDragging = false;
     private Vector3 mouseStartScreenPos;
     private Camera mainCamera;
@@ -49,6 +53,8 @@ public class RTSController : MonoBehaviour
 
     private void HandleSelection()
     {
+        if (isAttackMoveMode) return;
+
         // Нажали ЛКМ — фиксируем начало выделения
         if (Input.GetMouseButtonDown(0))
         {
@@ -168,6 +174,77 @@ public class RTSController : MonoBehaviour
 
     private void HandleOrders()
     {
+        // 1. Активация режима A-клика по нажатию клавиши A
+        if (selectedUnits.Count > 0 && Input.GetKeyDown(KeyCode.F))
+        {
+            isAttackMoveMode = true;
+            if (attackCursor != null)
+            {
+                Cursor.SetCursor(attackCursor, new Vector2(attackCursor.width / 2f, attackCursor.height / 2f), CursorMode.Auto);
+            }
+        }
+
+        // 2. Отмена режима A-клика по Esc
+        if (isAttackMoveMode && Input.GetKeyDown(KeyCode.Escape))
+        {
+            CancelAttackMoveMode();
+            return;
+        }
+
+        // 3. Выполнение приказа через ЛКМ при активном A-клике
+        if (isAttackMoveMode && Input.GetMouseButtonDown(0))
+        {
+            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+                return;
+
+            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+
+            // Клик по конкретному врагу
+            if (Physics.Raycast(ray, out RaycastHit enemyHit, Mathf.Infinity))
+            {
+                Health enemyHealth = enemyHit.collider.GetComponentInParent<Health>();
+                if (enemyHealth != null && !enemyHealth.IsDead)
+                {
+                    EnemyAI enemyAI = enemyHealth.GetComponent<EnemyAI>();
+                    if (enemyAI != null)
+                    {
+                        for (int i = 0; i < selectedUnits.Count; i++)
+                        {
+                            if (selectedUnits[i] != null)
+                            {
+                                MeleeAttack melee = selectedUnits[i].GetComponent<MeleeAttack>();
+                                if (melee != null) melee.AttackTarget(enemyHealth);
+                            }
+                        }
+                        CancelAttackMoveMode();
+                        return;
+                    }
+                }
+            }
+
+            // Клик в землю — приказ Attack-Move
+            if (Physics.Raycast(ray, out RaycastHit groundHit, Mathf.Infinity, groundLayer))
+            {
+                for (int i = 0; i < selectedUnits.Count; i++)
+                {
+                    if (selectedUnits[i] != null)
+                    {
+                        // Отдаем приказ движения с атакой
+                        selectedUnits[i].AttackMove(groundHit.point);
+                    }
+                }
+                CancelAttackMoveMode();
+                return;
+            }
+        }
+
+        // 4. Обычный ПКМ отменяет режим A-клика, если он был активен
+        if (Input.GetMouseButtonDown(1) && isAttackMoveMode)
+        {
+            CancelAttackMoveMode();
+            return;
+        }
+
         if (Input.GetMouseButtonDown(1))
         {
             if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
@@ -256,6 +333,12 @@ public class RTSController : MonoBehaviour
                 }
             }
         }
+    }
+
+    private void CancelAttackMoveMode()
+    {
+        isAttackMoveMode = false;
+        Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
     }
 
     private System.Collections.IEnumerator SingleClickDelayRoutine(Vector3 destination)

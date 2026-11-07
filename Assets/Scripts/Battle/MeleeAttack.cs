@@ -8,6 +8,7 @@ public class MeleeAttack : MonoBehaviour
     private Health targetEnemyHealth;
     private NavMeshAgent agent;
     private Animator animator;
+    public bool HasTarget => targetEnemyHealth != null && !targetEnemyHealth.IsDead;
 
     private float nextAttackTime = 0f;
 

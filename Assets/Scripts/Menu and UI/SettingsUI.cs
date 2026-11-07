@@ -10,7 +10,6 @@ public class SettingsUI : MonoBehaviour
 
     [Header("UI References")]
     [SerializeField] private Slider masterVolumeSlider;
-    [SerializeField] private TMP_Dropdown qualityDropdown;
     [SerializeField] private Toggle fullscreenToggle;
 
     private void Start()
@@ -25,8 +24,6 @@ public class SettingsUI : MonoBehaviour
         if (masterVolumeSlider != null)
             masterVolumeSlider.onValueChanged.AddListener(OnVolumeChanged);
 
-        if (qualityDropdown != null)
-            qualityDropdown.onValueChanged.AddListener(OnQualityChanged);
 
         if (fullscreenToggle != null)
             fullscreenToggle.onValueChanged.AddListener(OnFullscreenChanged);
@@ -37,8 +34,6 @@ public class SettingsUI : MonoBehaviour
         if (masterVolumeSlider != null)
             masterVolumeSlider.value = settingsData.masterVolume;
 
-        if (qualityDropdown != null)
-            qualityDropdown.value = settingsData.qualityLevel;
 
         if (fullscreenToggle != null)
             fullscreenToggle.isOn = settingsData.isFullscreen;
@@ -69,7 +64,6 @@ public class SettingsUI : MonoBehaviour
     {
         // Отписываемся для чистоты памяти
         if (masterVolumeSlider != null) masterVolumeSlider.onValueChanged.RemoveAllListeners();
-        if (qualityDropdown != null) qualityDropdown.onValueChanged.RemoveAllListeners();
         if (fullscreenToggle != null) fullscreenToggle.onValueChanged.RemoveAllListeners();
     }
 }
