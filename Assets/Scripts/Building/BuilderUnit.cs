@@ -237,9 +237,30 @@ public class BuilderUnit : MonoBehaviour
         }
 
         Vector3 targetPoint = GetClosestBuildPoint();
+
+        // Расстояние до целевой точки стройки
         float distance = Vector3.Distance(transform.position, targetPoint);
 
-        if (distance <= buildDistance)
+        // Также считаем реальное расстояние до ближайшей внешней грани коллайдера здания
+        float distToCollider = float.MaxValue;
+        if (targetCollider != null)
+        {
+            distToCollider = Vector3.Distance(transform.position, targetCollider.ClosestPoint(transform.position));
+        }
+
+        // Строим, если подошли к точке ИЛИ если подошли к коллайдеру здания на дистанцию стройки
+        bool inRange = distance <= buildDistance || distToCollider <= (buildDistance + 0.5f);
+
+        // Защита от тупика: если агент уперся в забор и больше не может идти вперед
+        if (!inRange && agent != null && agent.isOnNavMesh && !agent.pathPending)
+        {
+            if (agent.remainingDistance <= (agent.stoppingDistance + 0.3f) && distToCollider <= (buildDistance + 2.5f))
+            {
+                inRange = true;
+            }
+        }
+
+        if (inRange)
         {
             if (agent != null && agent.isOnNavMesh) agent.isStopped = true;
 
@@ -317,17 +338,29 @@ public class BuilderUnit : MonoBehaviour
     {
         if (targetSite == null) return transform.position;
 
+        Vector3 rawPoint;
         if (targetCollider != null)
         {
             Vector3 closest = targetCollider.ClosestPoint(transform.position);
             Vector3 dir = (transform.position - closest).normalized;
             dir.y = 0f;
-            return closest + dir * 1.5f;
+            if (dir == Vector3.zero) dir = transform.forward;
+            rawPoint = closest + dir * 2.0f;
+        }
+        else
+        {
+            Vector3 fromCenter = (transform.position - targetSite.transform.position).normalized;
+            fromCenter.y = 0f;
+            rawPoint = targetSite.transform.position + fromCenter * 5f;
         }
 
-        Vector3 fromCenter = (transform.position - targetSite.transform.position).normalized;
-        fromCenter.y = 0f;
-        return targetSite.transform.position + fromCenter * 3f;
+        // Проецируем точку строго на доступный край NavMesh вокруг повернутого забора
+        if (NavMesh.SamplePosition(rawPoint, out NavMeshHit hit, 4f, NavMesh.AllAreas))
+        {
+            return hit.position;
+        }
+
+        return rawPoint;
     }
 
     // Поиск ближайшей базы со скриптом ResourceDropOff
