@@ -50,7 +50,6 @@ public class UnitsController : MonoBehaviour
     {
         if (unitData == null)
         {
-            Debug.LogWarning($"[UnitController] На объекте {gameObject.name} не назначен UnitData!", this);
             return;
         }
 

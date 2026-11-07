@@ -82,6 +82,16 @@ public class pause : MonoBehaviour
         SceneManager.LoadScene("MainMenu");
     }
 
+    public void gotosettings()
+    {
+        Time.timeScale = 1f;
+        isPaused = false;
+        isGameOver = false;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        SceneManager.LoadScene("SettingsScene");
+    }
+
     public void exitgame()
     {
         Debug.Log("Выход из игры...");

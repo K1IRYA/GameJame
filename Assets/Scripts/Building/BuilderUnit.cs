@@ -68,7 +68,6 @@ public class BuilderUnit : MonoBehaviour
                 targetDropOff = FindClosestDropOff();
                 if (targetDropOff == null)
                 {
-                    Debug.LogWarning("[BuilderUnit] Склад/База (ResourceDropOff) не найдены на сцене!");
                     return;
                 }
             }

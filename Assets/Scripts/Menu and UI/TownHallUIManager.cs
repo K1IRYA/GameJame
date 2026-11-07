@@ -46,13 +46,11 @@ public class TownHallUIManager : MonoBehaviour
         // 1. Проверяем лимит населения
         if (PopulationManager.Instance != null && !PopulationManager.Instance.CanTrainBuilder())
         {
-            Debug.LogWarning("[TownHallUI] Достигнут лимит строителей! Постройте дом для расширения лимита.");
             return;
         }
 
         if (builderPrefab == null)
         {
-            Debug.LogError("[TownHallUI] Не назначен builderPrefab в инспекторе!");
             return;
         }
 
@@ -92,7 +90,6 @@ public class TownHallUIManager : MonoBehaviour
 
         if (spawnPos == Vector3.zero)
         {
-            Debug.LogError("[TownHallUI] Не удалось определить точку спавна у построенной базы!");
             return;
         }
 
@@ -105,7 +102,6 @@ public class TownHallUIManager : MonoBehaviour
 
         // 3. Спавним строителя
         GameObject newBuilder = Instantiate(builderPrefab, spawnPos, spawnRot);
-        Debug.Log($"[TownHallUI] Строитель нанят у построенной базы в точке: {spawnPos}");
 
         if (UnitSelectionUIManager.Instance != null)
         {

@@ -71,42 +71,56 @@
             UpdateCameraOffset();
         }
 
-        private void HandleMovement() // Перемещаяемся на WASD, и мышкой по краям экрына
+    private void HandleMovement()
+    {
+        float h = 0f;
+        float v = 0f;
+
+        if (InputManager.Instance != null)
         {
-            float h = Input.GetAxisRaw("Horizontal");
-            float v = Input.GetAxisRaw("Vertical");
+            if (InputManager.Instance.GetActionKey(GameAction.CameraLeft)) h -= 1f;
+            if (InputManager.Instance.GetActionKey(GameAction.CameraRight)) h += 1f;
+            if (InputManager.Instance.GetActionKey(GameAction.CameraDown)) v -= 1f;
+            if (InputManager.Instance.GetActionKey(GameAction.CameraUp)) v += 1f;
+        }
+        else
+        {
+            // Запасной откат на стандартный ввод, если сцена запущена без InputManager
+            h = Input.GetAxisRaw("Horizontal");
+            v = Input.GetAxisRaw("Vertical");
+        }
 
-            if (settings.enableEdgeScrolling)
+        if (settings.enableEdgeScrolling)
+        {
+            Vector3 mousePos = Input.mousePosition;
+
+            bool isWindow = mousePos.x >= 0 && mousePos.x <= Screen.width && mousePos.y >= 0 && mousePos.y <= Screen.height;
+
+            if (isWindow)
             {
-                Vector3 mousePos = Input.mousePosition;
+                if (mousePos.x <= settings.edgeBoundaryThickness)
+                    h = -1f;
+                else if (mousePos.x >= Screen.width - settings.edgeBoundaryThickness)
+                    h = 1f;
 
-                bool isWindow = mousePos.x >= 0 && mousePos.x <= Screen.width && mousePos.y >= 0 && mousePos.y <= Screen.height;
-            
-                if (isWindow)
-                {
-                    if (mousePos.x <= settings.edgeBoundaryThickness)
-                        h = -1f;
-                    else if (mousePos.x >= Screen.width - settings.edgeBoundaryThickness)
-                        h = 1f;
-
-                    if (mousePos.y <= settings.edgeBoundaryThickness)
-                        v = -1f;
-                    else if (mousePos.y >= Screen.height - settings.edgeBoundaryThickness)
-                        v = 1f;
-                }
-            }
-
-            Vector3 inputDir = new Vector3(h, 0f, v).normalized;
-
-            if (inputDir.sqrMagnitude > 0.01f)
-            {
-                Vector3 forward = transform.forward;
-                Vector3 right = transform.right;
-
-                Vector3 moveDirection = (forward * inputDir.z + right * inputDir.x).normalized;
-                targetPosition += moveDirection * (settings.moveSpeed * Time.deltaTime);
+                if (mousePos.y <= settings.edgeBoundaryThickness)
+                    v = -1f;
+                else if (mousePos.y >= Screen.height - settings.edgeBoundaryThickness)
+                    v = 1f;
             }
         }
+
+        Vector3 inputDir = new Vector3(h, 0f, v).normalized;
+
+        if (inputDir.sqrMagnitude > 0.01f)
+        {
+            Vector3 forward = transform.forward;
+            Vector3 right = transform.right;
+
+            Vector3 moveDirection = (forward * inputDir.z + right * inputDir.x).normalized;
+            targetPosition += moveDirection * (settings.moveSpeed * Time.deltaTime);
+        }
+    }
 
     private void HandleRotation()
     {
