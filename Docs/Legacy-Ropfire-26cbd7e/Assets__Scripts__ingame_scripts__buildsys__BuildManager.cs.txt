@@ -1,0 +1,30 @@
+﻿using System.Collections.Generic;
+using UnityEngine;
+
+public class BuildManager : MonoBehaviour
+{
+    // Список зданий для постройки
+    public List<BuildSetting> buildings = new List<BuildSetting>();
+
+    // Префаб кнопки
+    public GameObject buttonPrefab;
+
+    // Панель, куда складывать кнопки
+    public Transform parentTransform;
+
+    void Start()
+    {
+        if (buttonPrefab == null || parentTransform == null) return;
+
+        // Создаем кнопку под каждое здание из списка
+        foreach (BuildSetting b in buildings)
+        {
+            GameObject btn = Instantiate(buttonPrefab, parentTransform);
+            ButtonBuildSetting btnScript = btn.GetComponent<ButtonBuildSetting>();
+            if (btnScript != null)
+            {
+                btnScript.setting = b;
+            }
+        }
+    }
+}

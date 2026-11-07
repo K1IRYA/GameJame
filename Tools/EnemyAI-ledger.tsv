@@ -1,0 +1,10 @@
+ts	phase	decision	why	evidence	result
+2026-11-07T18:01:00+05:00	goal	Improve main EnemyAI and run Unity PlayMode tests	User objective	Tools/EnemyAI-PROGRESS.md	open
+2026-11-07T18:01:00+05:00	baseline	Use main 5ede188; preserve old branch work in stash	Current main has different battle integration	git status; git log; stash@{0}	verified
+2026-11-07T18:01:00+05:00	design	Use NavMeshAgent and reachable surface points; let AI own mobile attacks	Transform movement and autonomous ranged Update bypass obstacles/range	Assets/Scripts/Battle/EnemyAI.cs; Assets/Scripts/Battle/RangedAttack.cs	implementing
+2026-11-07T18:18:00+05:00	verification	Run Unity outside sandbox for license IPC	Sandbox launch exits199 before compilation	Logs/enemy-ai-compile.log	Unity compile exit0
+2026-11-07T18:18:00+05:00	review	R1 move NavMeshPath allocation Awake; R2 use world LOS mask	Real PlayMode exception and independent review	Logs/enemy-ai-checks.json; Assets/Scripts/Battle/EnemyAI.cs	fixed; rerun pending
+2026-11-07T18:30:00+05:00	verification	Drop -nographics for Editor PlayMode	Headless layout never advanced frames	Logs/enemy-ai-playmode.log	graphical batch executes all cases
+2026-11-07T18:30:00+05:00	fix	Discover distant blockade by ray when base unreachable	Local scan missed full-width wall and hall center path failed	Logs/enemy-ai-checks.json	wall breach test now passes
+2026-11-07T18:30:00+05:00	fix	Disable navigation component on death	Stopped agent retained native velocity despite ResetPath/zero velocity	Logs/enemy-ai-checks.json	final rerun pending
+2026-11-07T18:35:00+05:00	summary	Complete measured AI improvements; leave Unity GUI playing	7 real scenarios pass and original scene attacks verified	Logs/enemy-ai-checks.json; Logs/enemy-ai-main-scene.json; Logs/enemy-ai-main-editor.log	PASS7/7 Exit0 review APPROVE; no commit/push
