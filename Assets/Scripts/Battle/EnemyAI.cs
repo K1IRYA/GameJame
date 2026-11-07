@@ -1,221 +1,198 @@
 using UnityEngine;
 using UnityEngine.AI;
+using System.Collections.Generic;
 
-[RequireComponent(typeof(Health))]
-[RequireComponent(typeof(NavMeshAgent))]
 public class EnemyAI : MonoBehaviour
 {
-    [Header("Статблок врага")]
+    [Header("Статблок врага (Резерв для инспектора)")]
     [SerializeField] private UnitData enemyData;
     public UnitData Data => enemyData;
 
-    [Header("Настройки сканирования")]
-    [SerializeField] private float scanRadius = 15f;
+    [Header("Настройки луча марша")]
+    [SerializeField] private float marchDetectionDistance = 4f;
     [SerializeField] private LayerMask targetLayers;
 
-    private NavMeshAgent agent;
-    private Health health;
-    private Health currentTarget;
-    private float nextAttackTime;
+    private Vector3 targetBasePosition;
+    private bool isBaseFound = false;
+    private bool isRaycastModeActive = false;
 
+    // ЭТАП 2: Список преград и текущая приоритетная цель по лазеру
+    private List<Health> obstaclesList = new List<Health>();
+    private Health currentTarget;
+
+    // ЭТАП 3: Компоненты для проведения атак по ТЗ
     private MeleeAttack meleeAttack;
-    private RangedAttack rangedAttack;
+    private float nextAttackTime;
 
     private void Awake()
     {
-        agent = GetComponent<NavMeshAgent>();
-        health = GetComponent<Health>();
+        // Кэшируем твой компонент ближнего боя со старта игры
         meleeAttack = GetComponent<MeleeAttack>();
-        rangedAttack = GetComponent<RangedAttack>();
-
-        if (enemyData != null)
-        {
-            if (agent != null)
-            {
-                agent.speed = enemyData.moveSpeed;
-                agent.angularSpeed = enemyData.angularSpeed;
-                agent.acceleration = enemyData.acceleration;
-                agent.stoppingDistance = enemyData.attackRange - 0.2f;
-            }
-            if (health != null) health.SetupHealth(enemyData.maxHealth);
-        }
     }
 
     private void Start()
     {
-        StartCoroutine(ScanningRoutine());
-    }
-
-    private System.Collections.IEnumerator ScanningRoutine()
-    {
-        while (!health.IsDead)
+        if (TownHallRegister.IsBaseRegistered)
         {
-            ChooseBestTarget();
-            yield return new WaitForSeconds(0.5f);
-        }
-    }
-
-    private void ChooseBestTarget()
-    {
-        // 1. УДЕРЖАНИЕ СТЕН И РАТУШИ: Если уже штурмуем базу или ломаем забор — не пересчитываем цель, пока не уничтожим
-        if (currentTarget != null && !currentTarget.IsDead)
-        {
-            BuildingTypeInfo bInfo = currentTarget.GetComponent<BuildingTypeInfo>() ?? currentTarget.GetComponentInParent<BuildingTypeInfo>();
-            if (bInfo != null && (bInfo.Type == BuildingTypeInfo.BuildingType.Wall || bInfo.Type == BuildingTypeInfo.BuildingType.OtherBuilding || bInfo.Type == BuildingTypeInfo.BuildingType.TownHall))
-            {
-                return;
-            }
-        }
-
-        // 2. СКАНИРОВАНИЕ ОКРУЖЕНИЯ: Собираем объекты по маске слоев
-        Collider[] colliders = Physics.OverlapSphere(transform.position, scanRadius, targetLayers);
-        Health bestBuilder = null;
-        Health bestTower = null;
-        Health globalBase = null;
-
-        float minBuilderDist = float.MaxValue;
-        float minTowerDist = float.MaxValue;
-
-        foreach (var col in colliders)
-        {
-            if (col.gameObject == gameObject) continue;
-
-            Health h = col.GetComponent<Health>() ?? col.GetComponentInParent<Health>();
-            if (h == null || h.IsDead) continue;
-
-            // Ищем гномов-строителей
-            if (col.GetComponent<BuilderUnit>() != null || col.GetComponentInParent<BuilderUnit>() != null)
-            {
-                float dist = Vector3.Distance(transform.position, h.transform.position);
-                if (dist < minBuilderDist) { minBuilderDist = dist; bestBuilder = h; }
-                continue;
-            }
-
-            // Ищем здания по типам
-            BuildingTypeInfo building = col.GetComponent<BuildingTypeInfo>() ?? col.GetComponentInParent<BuildingTypeInfo>();
-            if (building != null)
-            {
-                if (building.Type == BuildingTypeInfo.BuildingType.Tower)
-                {
-                    float dist = Vector3.Distance(transform.position, h.transform.position);
-                    if (dist < minTowerDist) { minTowerDist = dist; bestTower = h; }
-                }
-                else if (building.Type == BuildingTypeInfo.BuildingType.TownHall)
-                {
-                    globalBase = h;
-                }
-            }
-        }
-
-        // 3. СТРОГИЙ ВЫБОР ПРИОРИТЕТОВ ИЗ ТЗ: Ратуша -> Строители -> Башни
-        if (globalBase != null)
-        {
-            currentTarget = globalBase;
+            targetBasePosition = TownHallRegister.BasePosition;
+            isBaseFound = true;
+            Debug.Log($"[EnemyAI] {gameObject.name}: Координаты Ратуши получены! Стартую прямой марш.");
         }
         else
         {
-            // Резервный глобальный поиск Ратуши, если она за пределами радиуса OverlapSphere
-            var dropOff = Object.FindAnyObjectByType<ResourceDropOff>();
-            if (dropOff != null) globalBase = dropOff.GetComponent<Health>() ?? dropOff.GetComponentInParent<Health>();
-
-            if (globalBase == null)
+            TownHallRegister register = Object.FindAnyObjectByType<TownHallRegister>();
+            if (register != null)
             {
-                GameObject baseGo = GameObject.Find("base") ?? GameObject.Find("base(Clone)");
-                if (baseGo != null) globalBase = baseGo.GetComponent<Health>() ?? baseGo.GetComponentInChildren<Health>();
-            }
-
-            if (globalBase != null && !globalBase.IsDead)
-            {
-                currentTarget = globalBase;
-            }
-            else if (bestBuilder != null)
-            {
-                currentTarget = bestBuilder;
-            }
-            else if (bestTower != null)
-            {
-                currentTarget = bestTower;
+                targetBasePosition = register.transform.position;
+                isBaseFound = true;
             }
         }
-
-        Debug.Log($"[EnemyAI] Моя текущая цель по ТЗ: {(currentTarget != null ? currentTarget.gameObject.name : "НИКОГО НЕ НАШЕЛ")}");
     }
 
     private void Update()
     {
-        if (health.IsDead || currentTarget == null || currentTarget.IsDead)
+        // Каждую секунду проверяем регистрацию базы на случай, если кубы родились раньше неё
+        if (!isBaseFound)
         {
-            if (agent != null && agent.isOnNavMesh) agent.isStopped = true;
+            if (TownHallRegister.IsBaseRegistered)
+            {
+                targetBasePosition = TownHallRegister.BasePosition;
+                isBaseFound = true;
+            }
             return;
         }
 
-        // ДИНАМИЧЕСКИЙ ПЕРЕХВАТ СТЕН И ЗАБОРОВ НА ПУТИ К ЦЕЛИ
-        bool hasObstacle = false;
-        Vector3 checkPoint = transform.position;
-
-        // ИЗМЕНЕНО: Включаем логику проламывания стен ТОЛЬКО когда физически подошли к базе/гному ближе scanRadius (15 метров)
-        float currentDistanceToTarget = Vector3.Distance(transform.position, currentTarget.transform.position);
-        if (currentDistanceToTarget <= scanRadius)
+        // Если сработал перехват — марш отключается, управление у Скрипта №2
+        if (isRaycastModeActive)
         {
-            Vector3 startPoint = transform.position + Vector3.up * 0.5f;
-            Vector3 endPoint = currentTarget.transform.position + Vector3.up * 0.5f;
-            RaycastHit hit;
+            ExecuteRaycastScannerMode();
+            return;
+        }
 
-            // 1. Проверяем прямую физическую линию видимости вблизи
-            if (Physics.Linecast(startPoint, endPoint, out hit, ~0))
+        // --- СКРИПТ №1: РЕЖИМ ПРЯМОГО МАРША ---
+        Vector3 rayStart = transform.position + Vector3.up * 0.5f;
+        Vector3 rayDir = transform.forward;
+        RaycastHit hit;
+
+        if (Physics.Raycast(rayStart, rayDir, out hit, marchDetectionDistance, targetLayers))
+        {
+            Health foundObstacle = hit.collider.GetComponent<Health>() ?? hit.collider.GetComponentInParent<Health>();
+            if (foundObstacle != null && !foundObstacle.IsDead)
             {
-                Health obsHealth = hit.collider.GetComponent<Health>() ?? hit.collider.GetComponentInParent<Health>();
-                if (obsHealth != null && obsHealth.gameObject != currentTarget.gameObject && !obsHealth.IsDead)
+                if (hit.collider.GetComponent<EnemyAI>() == null && hit.collider.GetComponentInParent<EnemyAI>() == null)
                 {
-                    if (hit.collider.GetComponent<EnemyAI>() == null && hit.collider.GetComponentInParent<EnemyAI>() == null)
-                    {
-                        hasObstacle = true;
-                        checkPoint = hit.point;
-                    }
-                }
-            }
-
-            // 2. РЕЗЕРВНЫЙ АВАРИЙНЫЙ ТРИГГЕР: Если буксуем на месте вплотную к забору
-            if (!hasObstacle && agent != null && agent.isOnNavMesh && agent.hasPath && agent.velocity.sqrMagnitude < 0.1f)
-            {
-                float currentAttackRange = enemyData != null ? enemyData.attackRange : 2f;
-                if (currentDistanceToTarget > currentAttackRange)
-                {
-                    hasObstacle = true;
-                    checkPoint = transform.position + transform.forward * 1.5f;
-                }
-            }
-
-            // Если преграда зафиксирована под носом — переключаемся на забор
-            if (hasObstacle)
-            {
-                Collider[] hitColliders = Physics.OverlapSphere(checkPoint, 3.5f, ~0);
-                foreach (var col in hitColliders)
-                {
-                    if (col.gameObject == gameObject) continue;
-
-                    Health wallHealth = col.GetComponent<Health>() ?? col.GetComponentInParent<Health>();
-                    if (wallHealth != null && !wallHealth.IsDead && wallHealth.gameObject != currentTarget.gameObject)
-                    {
-                        if (col.GetComponent<EnemyAI>() == null && col.GetComponentInParent<EnemyAI>() == null)
-                        {
-                            currentTarget = wallHealth;
-                            if (agent != null && agent.isOnNavMesh)
-                            {
-                                agent.isStopped = false;
-                                agent.SetDestination(currentTarget.transform.position);
-                            }
-                            break;
-                        }
-                    }
+                    Debug.Log($"[EnemyAI] {gameObject.name}: Включаю СКРИПТ №2 (Лучевой сканер pregrad).");
+                    isRaycastModeActive = true;
+                    RebuildRaycastObstaclesList(); // Запускаем первый сквозной просчет лазера
+                    return;
                 }
             }
         }
 
-        // БОЕВОЙ ЦИКЛ: ДВИЖЕНИЕ И АТАКА
+        // Прямое движение к базе
+        Vector3 directionToBase = (targetBasePosition - transform.position).normalized;
+        directionToBase.y = 0f;
+
+        if (directionToBase != Vector3.zero)
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(directionToBase), Time.deltaTime * 10f);
+        }
+        transform.position += directionToBase * 10f * Time.deltaTime;
+    }
+
+    // =========================================================
+    // ЭТАП 2: СКВОЗНОЙ ЛУЧЕВОЙ СКАНЕР ПРЕГРАД (СКРИПТ №2)
+    // =========================================================
+    private void RebuildRaycastObstaclesList()
+    {
+        obstaclesList.Clear();
+
+        // Стреляем сквозным лазером строго из центра куба в центр зарегистрированной Ратуши
+        Vector3 startPoint = transform.position + Vector3.up * 0.5f;
+        Vector3 targetPoint = TownHallRegister.IsBaseRegistered ? TownHallRegister.BasePosition + Vector3.up * 0.5f : targetBasePosition;
+        Vector3 direction = (targetPoint - startPoint).normalized;
+        float totalDistance = Vector3.Distance(startPoint, targetPoint);
+
+        // Собираем абсолютно ВСЕ попадания по пути лазера
+        RaycastHit[] hits = Physics.RaycastAll(startPoint, direction, totalDistance, targetLayers);
+
+        foreach (var hit in hits)
+        {
+            Health h = hit.collider.GetComponent<Health>() ?? hit.collider.GetComponentInParent<Health>();
+            if (h == null || h.IsDead || h.gameObject == gameObject) continue;
+
+            // Исключаем союзных кубов
+            if (hit.collider.GetComponent<EnemyAI>() != null || hit.collider.GetComponentInParent<EnemyAI>() != null) continue;
+
+            if (!obstaclesList.Contains(h))
+            {
+                obstaclesList.Add(h);
+            }
+        }
+
+        // СОРТИРОВКА СПИСКА СТРОГО ПО ТЗ: Стена -> Ратуша -> Строители -> Башни -> Остальные постройки
+        obstaclesList.Sort((a, b) =>
+        {
+            int priorityA = GetBuildingPriority(a);
+            int priorityB = GetBuildingPriority(b);
+            return priorityA.CompareTo(priorityB); // Сортировка от меньшего к большему (1 — топ приоритет)
+        });
+
+        // Назначаем текущую цель из отсортированного списка лазера
+        if (obstaclesList.Count > 0)
+        {
+            currentTarget = obstaclesList[0];
+            Debug.Log($"[EnemyAI] {gameObject.name}: Сквозной лазер отсортирован! Текущая приоритетная цель по ТЗ: {currentTarget.gameObject.name}");
+        }
+        else
+        {
+            // Если лазер абсолютно чист — возвращаемся к обычному маршу
+            isRaycastModeActive = false;
+        }
+    }
+
+    // Калькулятор приоритетов ТЗ
+    private int GetBuildingPriority(Health target)
+    {
+        BuildingTypeInfo bInfo = target.GetComponent<BuildingTypeInfo>() ?? target.GetComponentInParent<BuildingTypeInfo>();
+        if (bInfo != null)
+        {
+            switch (bInfo.Type)
+            {
+                case BuildingTypeInfo.BuildingType.Wall:
+                    return 1; // 1. Стены и заборы
+                case BuildingTypeInfo.BuildingType.TownHall:
+                    return 2; // 2. Ратуша
+                case BuildingTypeInfo.BuildingType.Tower:
+                    return 4; // 4. Башни
+                default:
+                    return 5; // 5. Остальные постройки
+            }
+        }
+
+        // Проверяем, является ли цель гномом-строителем
+        if (target.GetComponent<BuilderUnit>() != null || target.GetComponentInParent<BuilderUnit>() != null)
+        {
+            return 3; // 3. Строители
+        }
+
+        return 6;
+    }
+
+    private void ExecuteRaycastScannerMode()
+    {
+        // Если текущую преграду сломали или стёрли, мгновенно пересчитываем сквозной лазер
+        if (currentTarget == null || currentTarget.IsDead)
+        {
+            RebuildRaycastObstaclesList();
+            return;
+        }
+
+        // ЭТАП 3: РАСЧЕТ ДИСТАНЦИИ С ЗАЩИТОЙ ОТ ПРОСАЧИВАНИЯ СКВОЗЬ КОЛЛАЙДЕРЫ
         float distance = Vector3.Distance(transform.position, currentTarget.transform.position);
-        float attackRange = enemyData != null ? enemyData.attackRange : 2f;
-        // Если бьем здание — считаем расстояние до ближайшей точки его физического коллайдера
+        float attackRange = (enemyData != null) ? enemyData.attackRange : 2f;
+
+        // Если наша цель здание — считаем дистанцию до ближайшей внешней кромки его коллайдера, а не до центра!
         Collider targetCollider = currentTarget.GetComponent<Collider>() ?? currentTarget.GetComponentInChildren<Collider>();
         if (targetCollider != null && currentTarget.GetComponent<BuildingTypeInfo>() != null)
         {
@@ -223,10 +200,10 @@ public class EnemyAI : MonoBehaviour
             distance = Vector3.Distance(transform.position, closestPoint);
         }
 
+        // БОЕВОЙ ЦИКЛ: ЕСЛИ ПОДОШЛИ НА ДИСТАНЦИЮ УДАРА
         if (distance <= attackRange)
         {
-            if (agent != null && agent.isOnNavMesh) agent.isStopped = true;
-
+            // Полностью прекращаем движение (Скорость сбрасывается в 0, просачивание физически невозможно!)
             Vector3 lookDir = (currentTarget.transform.position - transform.position).normalized;
             lookDir.y = 0f;
             if (lookDir != Vector3.zero)
@@ -234,18 +211,16 @@ public class EnemyAI : MonoBehaviour
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(lookDir), Time.deltaTime * 10f);
             }
 
-            if (rangedAttack != null)
-            {
-                rangedAttack.AttackTargetFromAI(currentTarget);
-            }
-            else if (meleeAttack != null)
+            // Наносим урон через твой MeleeAttack
+            if (meleeAttack != null)
             {
                 meleeAttack.AttackTargetFromAI(currentTarget);
             }
             else if (Time.time >= nextAttackTime)
             {
-                nextAttackTime = Time.time + (enemyData != null ? enemyData.attackCooldown : 1f);
-                currentTarget.TakeDamage(enemyData != null ? enemyData.attackDamage : 10f);
+                // Резервный кулдаун атаки на случай, если компонент ближнего боя забыли повесить
+                nextAttackTime = Time.time + ((enemyData != null) ? enemyData.attackCooldown : 1f);
+                currentTarget.TakeDamage((enemyData != null) ? enemyData.attackDamage : 10f);
 
                 Animator anim = GetComponentInChildren<Animator>();
                 if (anim != null) anim.SetTrigger("Attack");
@@ -253,31 +228,33 @@ public class EnemyAI : MonoBehaviour
         }
         else
         {
-            if (agent != null && agent.isOnNavMesh)
+            // Если до забора еще есть расстояние — уверенно сближаемся
+            Vector3 directionToObstacle = (currentTarget.transform.position - transform.position).normalized;
+            directionToObstacle.y = 0f;
+
+            if (directionToObstacle != Vector3.zero)
             {
-                agent.isStopped = false;
-
-                Vector3 targetPosition = currentTarget.transform.position;
-
-                // КОРРЕКЦИЯ ДЛЯ ЗДАНИЙ: Если цель — Ратуша или башня, бежим к ближайшей к ней точке на синей сетке NavMesh
-                BuildingTypeInfo targetBuilding = currentTarget.GetComponent<BuildingTypeInfo>() ?? currentTarget.GetComponentInParent<BuildingTypeInfo>();
-                if (targetBuilding != null && targetBuilding.Type == BuildingTypeInfo.BuildingType.TownHall)
-                {
-                    NavMeshHit navHit;
-                    if (NavMesh.SamplePosition(targetPosition, out navHit, 30f, NavMesh.AllAreas))
-                    {
-                        targetPosition = navHit.position;
-                    }
-                }
-
-                agent.SetDestination(targetPosition);
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(directionToObstacle), Time.deltaTime * 10f);
             }
+
+            // Бежим в упор к преграде со скоростью 10 м/с
+            transform.position += directionToObstacle * 10f * Time.deltaTime;
         }
     }
 
-    private void OnDrawGizmosSelected()
+    private void OnDrawGizmos()
     {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, scanRadius);
+        // Зеленый — марш перед собой, Малиновый — активный сквозной лазер сквозь постройки до Ратуши
+        Gizmos.color = (!isRaycastModeActive) ? Color.green : Color.magenta;
+        Vector3 rayStart = transform.position + Vector3.up * 0.5f;
+
+        if (!isRaycastModeActive)
+        {
+            Gizmos.DrawRay(rayStart, transform.forward * marchDetectionDistance);
+        }
+        else if (TownHallRegister.IsBaseRegistered)
+        {
+            Gizmos.DrawLine(rayStart, TownHallRegister.BasePosition + Vector3.up * 0.5f);
+        }
     }
 }

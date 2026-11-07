@@ -21,8 +21,8 @@ public class WaveSpawner : MonoBehaviour
     }
 
     [Header("Настройки времени")]
-    [SerializeField] private float timeBeforeFirstWave = 120f; // Пару минут до первой волны
-    [SerializeField] private float timeBetweenWaves = 90f;    // Время между последующими волнами
+    [SerializeField] private float timeBeforeFirstWave = 10f; // Пару минут до первой волны
+    [SerializeField] private float timeBetweenWaves = 30f;    // Время между последующими волнами
 
     [Header("Точки спавна врагов")]
     [SerializeField] private Transform[] spawnPoints; // 3 спота спавна
