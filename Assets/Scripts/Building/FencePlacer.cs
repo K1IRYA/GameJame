@@ -52,7 +52,11 @@ public class FencePlacer : MonoBehaviour
         if (!isPlacing) return;
 
         // Поворот на 90 градусов кнопкой R
-        if (Input.GetKeyDown(KeyCode.R))
+        bool isRotateTriggered = InputManager.Instance != null
+            ? InputManager.Instance.GetActionKeyDown(GameAction.RotatePlacement)
+            : Input.GetKeyDown(KeyCode.R);
+
+        if (isRotateTriggered)
         {
             manualRotationAngle = (manualRotationAngle + 90f) % 360f;
         }
@@ -223,7 +227,6 @@ public class FencePlacer : MonoBehaviour
 
         if (finalCount <= 0)
         {
-            Debug.LogWarning("[FencePlacer] Недостаточно ресурсов для постройки даже одной секции забора!");
             return;
         }
 
@@ -247,7 +250,6 @@ public class FencePlacer : MonoBehaviour
             bool success = ResourceManager.Instance.TrySpendResources(totalScrap, totalIron, totalWood);
             if (!success)
             {
-                Debug.LogWarning("[FencePlacer] Ошибка списания ресурсов!");
                 return;
             }
         }
@@ -261,7 +263,6 @@ public class FencePlacer : MonoBehaviour
 
         if (fenceSitePrefab == null)
         {
-            Debug.LogError("[FencePlacer] Не назначен fenceSitePrefab!");
             return;
         }
 

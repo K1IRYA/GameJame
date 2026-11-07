@@ -174,8 +174,12 @@ public class RTSController : MonoBehaviour
 
     private void HandleOrders()
     {
-        // 1. Активация режима A-клика по нажатию клавиши A
-        if (selectedUnits.Count > 0 && Input.GetKeyDown(KeyCode.F))
+        // 1. Активация режима Attack-Move по настроенной в InputManager клавише
+        bool isAttackTriggered = InputManager.Instance != null
+            ? InputManager.Instance.GetActionKeyDown(GameAction.AttackMove)
+            : Input.GetKeyDown(KeyCode.F);
+
+        if (selectedUnits.Count > 0 && isAttackTriggered)
         {
             isAttackMoveMode = true;
             if (attackCursor != null)
