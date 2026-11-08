@@ -59,7 +59,7 @@ Assets/
 
 1. **Clone the Repository:**
    ```bash
-   git clone https://github.com
+   git clone https://github.com/K1IRYA/GameJame
    ```
 2. **Launch via Unity Hub:**
    * Open Unity Hub, click **Add**, and select the cloned repository root folder.
