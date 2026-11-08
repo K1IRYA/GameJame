@@ -12,16 +12,16 @@ public class AudioManager : MonoBehaviour
     [Header("Фоновая музыка (необязательно)")]
     [SerializeField] private AudioClip backgroundMusic;
 
-    [Header("Настройки громкости")]
-    [Range(0f, 1f)][SerializeField] private float sfxVolume = 0.8f;
-    [Range(0f, 1f)][SerializeField] private float musicVolume = 0.5f;
+    [Header("Настройки громкости каналов")]
+    private float masterVolume = 1f;
+    private float baseMusicVolume = 0.3f;
+    private float baseSfxVolume = 0.8f;
 
     private AudioSource sfxSource;
     private AudioSource musicSource;
 
     private void Awake()
     {
-        // Паттерн Singleton с защитой от дублирования при смене сцен
         if (Instance == null)
         {
             Instance = this;
@@ -37,7 +37,6 @@ public class AudioManager : MonoBehaviour
 
     private void OnEnable()
     {
-        // Подписываемся на загрузку любых сцен в проекте
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
@@ -48,18 +47,22 @@ public class AudioManager : MonoBehaviour
 
     private void InitializeAudioSources()
     {
-        // Создаем два отдельных источника: для музыки и для звуковых эффектов
+        // Считываем все сохраненные настройки
+        masterVolume = PlayerPrefs.GetFloat("Settings_MasterVolume", 1f);
+        baseMusicVolume = PlayerPrefs.GetFloat("Settings_MusicVolume", 0.3f);
+        baseSfxVolume = PlayerPrefs.GetFloat("Settings_SfxVolume", 0.8f);
+
         musicSource = gameObject.AddComponent<AudioSource>();
         musicSource.loop = true;
         musicSource.playOnAwake = false;
         musicSource.spatialBlend = 0f;
-        musicSource.volume = musicVolume;
+        musicSource.volume = masterVolume * baseMusicVolume;
 
         sfxSource = gameObject.AddComponent<AudioSource>();
         sfxSource.loop = false;
         sfxSource.playOnAwake = false;
         sfxSource.spatialBlend = 0f;
-        sfxSource.volume = sfxVolume;
+        sfxSource.volume = masterVolume * baseSfxVolume;
 
         if (backgroundMusic != null)
         {
@@ -69,7 +72,6 @@ public class AudioManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // При переходе на новую сцену автоматически привязываем клик ко всем новым кнопкам
         BindAllSceneButtons();
     }
 
@@ -93,7 +95,7 @@ public class AudioManager : MonoBehaviour
     {
         if (uiClickClip != null && sfxSource != null)
         {
-            sfxSource.PlayOneShot(uiClickClip, sfxVolume);
+            sfxSource.PlayOneShot(uiClickClip, masterVolume * baseSfxVolume);
         }
     }
 
@@ -101,25 +103,41 @@ public class AudioManager : MonoBehaviour
     {
         if (clip != null && sfxSource != null)
         {
-            sfxSource.PlayOneShot(clip, sfxVolume * volumeMultiplier);
+            sfxSource.PlayOneShot(clip, masterVolume * baseSfxVolume * volumeMultiplier);
         }
     }
 
     public void PlayMusic(AudioClip clip)
     {
         if (musicSource == null || clip == null) return;
-
         if (musicSource.clip == clip && musicSource.isPlaying) return;
 
         musicSource.clip = clip;
         musicSource.Play();
     }
 
-    public void SetVolume(float volume)
+    // Методы динамического изменения громкости из слайдеров настроек
+    public void SetMasterVolume(float volume)
     {
-        sfxVolume = volume;
-        musicVolume = volume;
-        if (sfxSource != null) sfxSource.volume = sfxVolume;
-        if (musicSource != null) musicSource.volume = musicVolume;
+        masterVolume = volume;
+        UpdateCurrentVolumes();
+    }
+
+    public void SetMusicVolume(float volume)
+    {
+        baseMusicVolume = volume;
+        UpdateCurrentVolumes();
+    }
+
+    public void SetSfxVolume(float volume)
+    {
+        baseSfxVolume = volume;
+        UpdateCurrentVolumes();
+    }
+
+    private void UpdateCurrentVolumes()
+    {
+        if (musicSource != null) musicSource.volume = masterVolume * baseMusicVolume;
+        if (sfxSource != null) sfxSource.volume = masterVolume * baseSfxVolume;
     }
 }
