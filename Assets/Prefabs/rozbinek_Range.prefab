@@ -1119,7 +1119,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyData: {fileID: 11400000, guid: e52b049995ac6f44dbfc43f32393dbe7, type: 2}
-  marchDetectionDistance: 80
+  marchDetectionDistance: 100
   targetLayers:
     serializedVersion: 2
     m_Bits: 0
