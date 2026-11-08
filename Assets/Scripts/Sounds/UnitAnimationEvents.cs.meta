@@ -1,0 +1,12 @@
+fileFormatVersion: 2
+guid: 55d5d9d83d14b9e40817cb94d431ff04
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - hammerHitClip: {fileID: 8300000, guid: 280c11232c4800846af5c5869bb4a9dc, type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
