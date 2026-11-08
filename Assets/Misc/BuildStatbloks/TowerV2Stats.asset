@@ -23,7 +23,7 @@ MonoBehaviour:
   acceleration: 0
   maxHealth: 800
   attackDamage: 5
-  attackRange: 35
+  attackRange: 45
   attackCooldown: 0.2
   Cost: 50
   buildTime: 5
