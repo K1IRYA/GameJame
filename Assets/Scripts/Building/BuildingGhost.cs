@@ -20,6 +20,15 @@ public class BuildingGhost : MonoBehaviour
     private Camera mainCamera;
     private bool canBuild = true;
 
+    // ДОБАВЛЕНО: Ссылка на интерфейс стоимости кнопки
+    private BuildingCostUI originCostUI;
+
+    // ДОБАВЛЕНО: Метод инициализации стоимости
+    public void SetOriginCostUI(BuildingCostUI costUI)
+    {
+        originCostUI = costUI;
+    }
+
     private void Awake()
     {
         mainCamera = Camera.main;
@@ -118,6 +127,17 @@ public class BuildingGhost : MonoBehaviour
 
     private void PlaceConstructionSite()
     {
+        // Проверяем стоимость: если кнопка была привязана, пытаемся списать ресурсы
+        if (originCostUI != null)
+        {
+            bool success = originCostUI.TrySpendResources();
+            if (!success)
+            {
+                Debug.LogWarning("[BuildingGhost] Недостаточно ресурсов для списания фундамента!");
+                return; // Прерываем установку, если ресурсов на складе уже нет
+            }
+        }
+
         if (constructionSitePrefab != null)
         {
             GameObject siteObj = Instantiate(constructionSitePrefab, transform.position, transform.rotation);
@@ -125,6 +145,7 @@ public class BuildingGhost : MonoBehaviour
 
             if (site != null)
             {
+                // Очищенный от решёток вызов для стабильности версий
                 BuilderUnit[] builders = FindObjectsOfType<BuilderUnit>();
                 foreach (var builder in builders)
                 {
